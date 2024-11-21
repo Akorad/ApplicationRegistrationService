@@ -1,0 +1,140 @@
+<!-- ticket-modal.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+</head>
+
+<body>
+
+<div class="modal fade" id="ticketInfoModal" tabindex="-1" aria-labelledby="ticketInfoModalLabel" aria-hidden="true" th:attr="data-ticket-number=${ticket.ticketNumber}">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    Заявка № <span th:text="${ticket.ticketNumber +' Заказчик: '+ ticket.user.firstName +' '+ ticket.user.lastName}"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Левая колонка -->
+                    <div class="col-md-6">
+                        <!-- Инвентарный номер -->
+                        <div class="mb-3">
+                            <label class="form-label">Инвентарный номер</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="inventoryNumber"
+                                    th:value="${ticket.equipment.inventoryNumber}"
+                                    th:readonly="${user.role != T(ru.Darvin.Entity.Role).USER}">
+                        </div>
+
+                        <!-- Наименование техники (доступно для всех) -->
+                        <div class="mb-3">
+                            <label class="form-label">Наименование техники:</label>
+                            <p th:text="${'      '+ticket.equipment.assetName}" class="form-text"></p>
+                        </div>
+
+                        <!-- Материально ответственное лицо (только администратор) -->
+                        <div class="mb-3" th:if="${user.role == T(ru.Darvin.Entity.Role).ADMIN}">
+                            <label class="form-label">Материально ответственное лицо:</label>
+                            <p th:text="${'      '+ticket.equipment.responsiblePerson}" class="form-text"></p>
+                        </div>
+
+                        <!-- Вид финансового обеспечения (только администратор) -->
+                        <div class="mb-3" th:if="${user.role == T(ru.Darvin.Entity.Role).ADMIN}">
+                            <label class="form-label">Вид финансового обеспечения:</label>
+                            <p th:text="${'      '+ticket.equipment.kfoName +' Номер: '+ ticket.equipment.kfoLine}" class="form-text"></p>
+                        </div>
+
+                        <!-- Описание -->
+                        <div class="mb-3">
+                            <label class="form-label">Описание</label>
+                            <textarea
+                                    class="form-control"
+                                    id="descriptionOfTheProblem"
+                                    th:text="${ticket.descriptionOfTheProblem}"
+                                    th:readonly="${user.role != T(ru.Darvin.Entity.Role).USER}"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Правая колонка -->
+                    <div class="col-md-6">
+                        <!-- Обнаруженная неисправность -->
+                        <div class="mb-3">
+                            <label class="form-label">Обнаруженная неисправность</label>
+                            <textarea
+                                    class="form-control"
+                                    id="detectedProblem"
+                                    th:text="${ticket.detectedProblem}"
+                                    th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}"></textarea>
+                        </div>
+
+                        <!-- Комментарий (только администратор) -->
+                        <div class="mb-3" th:if="${user.role == T(ru.Darvin.Entity.Role).ADMIN}">
+                            <label class="form-label">Комментарий</label>
+                            <textarea
+                                    class="form-control"
+                                    id="comments"
+                                    th:text="${ticket.comments}"></textarea>
+                        </div>
+
+                        <!-- Вид работы -->
+                        <div class="mb-3">
+                            <label class="form-label">Вид работы</label>
+                            <textarea
+                                    class="form-control"
+                                    id="typeOfWork"
+                                    th:text="${ticket.typeOfWork}"
+                                    th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}"></textarea>
+                        </div>
+
+                        <!-- Статус заявки -->
+                        <div class="mb-3">
+                            <label class="form-label">Статус заявки</label>
+                            <select
+                                    class="form-select"
+                                    id="status"
+                                    th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}"
+                                    th:value="${ticket.status}">
+                                <option value="CREATED">Создана</option>
+                                <option value="IN_WORK">В работе</option>
+                                <option value="WAITING_FOR_SPARE_PARTS">Ожидание запчастей</option>
+                                <option value="READY">Готово</option>
+                                <option value="CLOSED">Закрыта</option>
+                            </select>
+                        </div>
+
+                        <!-- Использованные детали -->
+                        <div class="mb-3">
+                            <label class="form-label">Использованные детали</label>
+                            <div id="supplyDropdown" class="dropdown-menu"></div>
+                            <input
+                                    type="text"
+                                    id="supplySearchInput"
+                                    class="form-control"
+                                    placeholder="Введите название материала..."
+                                    th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}">
+                        </div>
+
+                        <div id="selectedSupplies" class="mt-3"  th:attr="data-supplies-json=${suppliesJson}">
+                            <!-- Список выбранных материалов -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <div>
+                    <button type="button" id="deleteButton" class="btn btn-danger">Удалить</button>
+                    <button type="button" id="saveButton" class="btn btn-primary">Сохранить изменения</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

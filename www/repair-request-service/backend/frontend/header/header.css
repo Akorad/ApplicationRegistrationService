@@ -1,0 +1,138 @@
+/* Базовые стили */
+body, html {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+.header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+    background-color: #007bff;
+    color: white;
+    margin: 0;
+}
+
+/* Логотип */
+.logo {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Меню */
+.navigation {
+    display: flex;
+    flex-direction: row; /* Горизонтальное меню по умолчанию */
+}
+
+/* Список ссылок */
+.nav-list {
+    display: flex;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* Стили ссылок */
+.nav-link {
+    text-decoration: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    transition: background 0.3s ease;
+}
+
+/* Подсветка активных ссылок */
+.nav-link:hover,
+.nav-link.active {
+    background-color: #0056b3;
+    border-radius: 5px;
+}
+
+/* Кнопка меню (только для мобильных устройств) */
+.menu-toggle {
+    display: none;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+/* Вкладки */
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+
+
+/* Адаптация под мобильные устройства */
+@media (max-width: 768px) {
+    /* Кнопка меню видна только на мобильных устройствах */
+    .menu-toggle {
+        display: block;
+    }
+
+    .navigation .btn {
+        padding: 16px;
+
+    }
+
+    /* Меню скрыто по умолчанию на мобильных устройствах */
+    .navigation {
+        display: none;
+        flex-direction: column; /* Меню вертикальное на мобильных устройствах */
+        background-color: #007bff;
+        position: fixed; /* Фиксированное меню, чтобы оно перекрывало контент */
+        top: 0;
+        left: 0;
+        width: 100%; /* Ширина меню на весь экран */
+        height: auto; /* Высота меню на весь экран */
+        z-index: 1000; /* Чтобы меню было поверх контента */
+        padding-top: 60px; /* Отступ сверху, чтобы меню не перекрывало логотип */
+    }
+
+
+    /* Когда меню активировано, оно становится видимым */
+    .navigation.active {
+        display: flex; /* Меню будет видно */
+    }
+
+    /* Стили для каждой ссылки в меню */
+    .nav-link {
+        padding: 1rem;
+        text-align: center;
+        border-bottom: 1px solid #0056b3;
+    }
+
+    /* Убираем горизонтальные списки */
+    .nav-list {
+        display: flex;
+        flex-direction: column; /* Список ссылок в колонку */
+    }
+    .logo{
+        font-size: 1.1rem;
+        font-weight: bold;
+    }
+}
+
+/* Для экранов больше 768px меню отображается горизонтально */
+@media (min-width: 769px) {
+    .menu-toggle {
+        display: none; /* Кнопка скрыта на больших экранах */
+    }
+
+    .navigation {
+        display: flex;
+        position: static; /* Меню не фиксированное */
+        flex-direction: row; /* Горизонтальное меню */
+        width: auto;
+        height: auto;
+    }
+}

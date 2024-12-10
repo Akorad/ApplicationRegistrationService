@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
     <title>Список заявок</title>
-    <link rel="stylesheet" href="style.css"> <!-- Подключение файла стилей -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="/css/style.css"> <!-- Подключение файла стилей -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
 </head>
 <body>
 <div id="header-container"></div> <!-- Здесь будет размещён header -->
@@ -16,12 +20,10 @@
             <h1 class="text-left">Список заявок</h1>
         </div>
         <div class="col-sm-9 text-end">
-<!--            <button id="loginButton" class="btn btn-outline-primary me-2">Войти</button>-->
-<!--            <button id="logoutButton" class="btn btn-outline-danger">Выйти</button>-->
             <button
                     type="button"
                     id="checkInventoryButton"
-                    class="btn btn-secondary ms-2"
+                    class="btn btn-secondary ms-2 d-none"
                     data-bs-toggle="modal"
                     data-bs-target="#inventoryCheckModal">
                 Проверка по инвентарному номеру
@@ -109,36 +111,15 @@
 </div>
 
 <!-- Модальные окна -->
+
 <!-- Модальное окно для авторизации -->
-<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="loginModalLabel">Авторизация</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
-            </div>
-            <div class="modal-body">
-                <form id="loginForm">
-                    <div class="mb-3">
-                        <label for="username" class="form-label">Имя пользователя</label>
-                        <input type="text" class="form-control" id="username" name="username" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Пароль</label>
-                        <input type="password" class="form-control" id="password" name="password" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Войти</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<div id="modalContainerAuth"></div>
 
 <!-- Модальное окно для создания заявки -->
 <div class="modal fade" id="createTicketModal" tabindex="-1" aria-labelledby="createTicketModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
+            <div class="modal-header ">
                 <h5 class="modal-title" id="createTicketModalLabel">Создать заявку</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
@@ -152,7 +133,7 @@
                         <label for="problemDescription" class="form-label">Описание проблемы</label>
                         <textarea class="form-control" id="problemDescription" name="descriptionOfTheProblem" rows="3" required autocomplete="off"></textarea>
                     </div>
-                    <button type="submit" class="btn btn-success w-100">Создать заявку</button>
+                    <button type="submit" class="btn btn-primary w-100">Создать заявку</button>
                 </form>
             </div>
         </div>
@@ -185,15 +166,21 @@
 <!-- Модальное окно для просмотра и редактирования заявки -->
 <div id="modalContainer"></div>
 
+<!-- Контейнер для алертов -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="alertContainer">
+    <!-- Временный контейнер для отображения алертов -->
+</div>
+
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js" integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="/js/header.js"></script>
 <script src="/js/auth.js"></script>
 <script src="/js/tickets.js"></script>
 <script src="/js/modals.js"></script>
 <script src="/js/select2.js"></script>
 <script src="/js/utils.js"></script>
 <script src="/js/main.js"></script>
+<script src="/js/alert.js"></script>
 </body>
 </html>

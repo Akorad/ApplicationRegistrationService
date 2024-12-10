@@ -10,17 +10,17 @@ function createTicket(ticketData) {
     })
         .then(response => {
             if (response.ok) {
-                alert('Заявка создана!');
+                showAlert('Заявка создана!');
                 $('#createTicketModal').modal('hide');
                 fetchTickets(); // Обновление списка заявок
             } else {
                 response.json().then(errorData => {
-                    alert(`Ошибка при создании заявки: ${errorData.error}`);
+                    showAlert(`Ошибка при создании заявки: ${errorData.error}`);
                 });
             }
         })
         .catch(error => {
             console.error('Ошибка при отправке запроса:', error);
-            alert('Произошла ошибка при соединении с сервером.');
+            showAlert('Произошла ошибка при соединении с сервером.');
         });
 }

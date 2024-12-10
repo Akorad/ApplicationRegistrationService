@@ -20,11 +20,13 @@ public class TicketInfoDTO {
     private TicketType status;                  //Статус
     private UserDTO user;                       //ссылка на создавшего заявку пользователя
     private UserDTO editorUser;                 //ссылка на редактирующего заявку пользователя
+    private String guestPhoneNumber;            //Номер телефона гостя
+    private String guestDepartment;             //Отдел гостя
 
 
     private Equipment equipment;                //ссылка на оборудование
 
 
-    private List<Supplies> supplies;            // Список материалов
+    private List<Supplies> supplies;            //Список материалов
 
 }

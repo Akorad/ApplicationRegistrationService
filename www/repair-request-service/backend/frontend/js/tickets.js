@@ -7,7 +7,7 @@ async function fetchTickets(page = 0, size = 10, filters = {}) {
         }
     });
     if (!response.ok) {
-        alert('Ошибка при загрузке заявок. Пожалуйста, выполните вход в систему.');
+        showAlert('Ошибка при загрузке заявок. Пожалуйста, выполните вход в систему.');
         $('#loginModal').modal('show');
         return;
     }
@@ -22,6 +22,16 @@ function updateTicketTable(tickets) {
     ticketTableBody.innerHTML = '';
     tickets.forEach(ticket => {
         const row = document.createElement('tr');
+
+        // Проверяем статус заявки
+        const isClosed = ticket.status === 'CLOSED';
+
+        // Изменяем стиль строки, если заявка закрыта
+        if (isClosed) {
+            row.classList.add('closed-ticket');
+        }
+
+
         row.innerHTML = `
             <td>${ticket.ticketNumber}</td>
             <td>${ticket.inventoryNumber}</td>
@@ -29,21 +39,22 @@ function updateTicketTable(tickets) {
             <td>${new Date(ticket.createdDate).toLocaleString()}</td>
             <td>${ticket.endDate ? new Date(ticket.endDate).toLocaleString() : 'Не закрыта'}</td>
             ${localStorage.getItem('userRole') === 'ADMIN' ?
-            `<td>${ticket.user.firstName} ${ticket.user.lastName}</td>
-                 <td>${ticket.editorUser ? ticket.editorUser.firstName + ' ' + ticket.editorUser.lastName : 'Не назначен'}</td>`
-            :
+            `<td>${ticket.user.firstName ? ticket.user.firstName + ' ' + ticket.user.lastName : ticket.guestDepartment}</td>
+                 <td>${ticket.editorUser ? ticket.editorUser.firstName + ' ' + ticket.editorUser.lastName : 'Не назначен'}</td>` :
             `<td style="display: none;"></td>
                  <td style="display: none;"></td>`
         }
             <td>
-                <button class="btn btn-warning" onclick="openModal('${ticket.ticketNumber}')">
-                    ${localStorage.getItem('userRole') === 'ADMIN' ? 'Обработать' : 'Редактировать'}
+                <button class="btn ${isClosed ? 'btn-secondary' : 'btn-warning'}" 
+                        onclick="openModal('${ticket.ticketNumber}')">
+                    ${isClosed ? 'Просмотр' : (localStorage.getItem('userRole') === 'ADMIN' ? 'Обработать' : 'Редактировать')}
                 </button>
             </td>
         `;
         ticketTableBody.appendChild(row);
     });
 }
+
 
 // Обновление пагинации
 function updatePagination(totalPages, currentPage) {

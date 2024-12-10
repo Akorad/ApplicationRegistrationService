@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -25,8 +26,15 @@ public class Supplies {
     private int quantity;               //Количество
     private String mol;                 //МОЛ
 
+    private LocalDateTime dateOfUse;    //дата использования материала
+
     @ManyToOne
     @JoinColumn(name = "ticket_id")
     @JsonIgnore
     private Ticket ticket;              // Ссылка на заявку
+
+    @ManyToOne
+    @JoinColumn(name = "supplies_issue_id")
+    @JsonIgnore
+    private SuppliesIssue suppliesIssue; // Ссылка на запись выдачи
 }

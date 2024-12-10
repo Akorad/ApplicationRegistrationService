@@ -11,6 +11,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  web:
+    resources:
+      static-locations: file:src/main/source/images/
   mail:
     host: smtp.gmail.com
     port: 587

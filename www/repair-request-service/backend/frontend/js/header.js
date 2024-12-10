@@ -1,40 +1,124 @@
-const menuToggle = document.querySelector(".menu-toggle");
-const navigation = document.querySelector(".navigation");
-const navLinks = document.querySelectorAll(".nav-link");
-const tabs = document.querySelectorAll(".tab-content");
+document.addEventListener("DOMContentLoaded", function () {
+    const headerContainer = document.getElementById("header-container");
 
-// Переключение меню
-menuToggle.addEventListener("click", (event) => {
-    navigation.classList.toggle("active");
-    event.stopPropagation(); // Предотвращаем всплытие события клика
+    if (!headerContainer) {
+        console.error("Элемент #header-container не найден.");
+        return;
+    }
+
+    async function loadHeader() {
+        try {
+
+            const response = await fetch("/templates/header.html");
+            if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+
+            const headerHTML = await response.text();
+            headerContainer.innerHTML = headerHTML;
+
+            // Вызов функции checkAuthStatus сразу после загрузки хедера
+            checkAuthStatus();
+            initHeaderEvents();
+
+        } catch (error) {
+            console.error("Ошибка загрузки header.html:", error);
+        }
+    }
+
+    loadHeader();  // Вызываем функцию загрузки хедера
+
+// Проверка статуса авторизации и настройка хедера
+    function checkAuthStatus() {
+        try {
+            const token = localStorage.getItem("token");
+            const userRole = localStorage.getItem("userRole");
+
+            const loginButton = document.getElementById("loginButton");
+            const logoutButton = document.getElementById("logoutButton");
+            const navItems = document.querySelectorAll(".ad");
+            const guestItems = document.querySelectorAll(".nav-link");
+
+            // Проверяем, что все элементы существуют в DOM
+            if (!loginButton || !logoutButton || navItems.length === 0) {
+                console.error("Элементы хедера не найдены. Повторяем проверку позже...");
+                setTimeout(checkAuthStatus, 50); // Повторная проверка с задержкой
+                return;
+            }
+
+            if (token && userRole) {
+                // Пользователь авторизован
+                loginButton.style.display = "none";
+                logoutButton.style.display = "inline-block";
+
+                if (userRole === "USER") {
+                    // Скрываем все ссылки для пользователей с ролью USER
+                    navItems.forEach(item => {
+                        item.style.display = "none";
+                    });
+                } else if (userRole === "ADMIN") {
+                    // Отображаем все ссылки для администраторов
+                    navItems.forEach(item => {
+                        item.style.display = "list-item";
+                    });
+                } else if (userRole === "GUEST") {
+                    // Скрываем все ссылки для пользователей с ролью USER
+                    guestItems.forEach(item => {
+                        item.style.display = "none";
+                    });
+                }
+            } else {
+                // Пользователь не авторизован
+                loginButton.style.display = "inline-block";
+                logoutButton.style.display = "none";
+
+                // Скрываем меню для неавторизованных
+                guestItems.forEach(item => {
+                    item.style.display = "none";
+                });
+            }
+        } catch (error) {
+            console.error("Ошибка в checkAuthStatus:", error);
+        }
+    }
 });
 
-// Переключение вкладок
-navLinks.forEach(link => {
-    link.addEventListener("click", (event) => {
-        event.preventDefault();
+// Инициализация событий для хедера
+function initHeaderEvents() {
+    const menuToggle = document.querySelector(".menu-toggle");
+    const navigation = document.querySelector(".navigation");
+    const navLinks = document.querySelectorAll(".nav-link");
 
-        // Удаляем активный класс со всех ссылок
-        navLinks.forEach(link => link.classList.remove("active"));
-        // Устанавливаем активный класс на текущую ссылку
-        event.target.classList.add("active");
+    if (!menuToggle || !navigation || navLinks.length === 0) {
+        console.error("Элементы хедера не найдены.");
+        return;
+    }
 
-        // Показываем соответствующую вкладку
-        const targetTab = event.target.getAttribute("href").substring(1);
-        tabs.forEach(tab => {
-            tab.classList.toggle("active", tab.id === targetTab);
-        });
+    menuToggle.addEventListener("click", (event) => {
+        navigation.classList.toggle("active");
+        event.stopPropagation();
+    });
 
-        // Закрываем меню на мобильных устройствах
-        if (window.innerWidth <= 768) {
+    const currentPage = window.location.pathname.split("/").pop();
+
+    navLinks.forEach(link => {
+        const linkPage = link.getAttribute("href").split("/").pop();
+        if (linkPage === currentPage) {
+            link.classList.add("active");
+        } else {
+            link.classList.remove("active");
+        }
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!navigation.contains(event.target) && !menuToggle.contains(event.target)) {
             navigation.classList.remove("active");
         }
     });
-});
 
-// Закрытие меню при клике вне его области
-document.addEventListener("click", (event) => {
-    if (!navigation.contains(event.target) && !menuToggle.contains(event.target)) {
-        navigation.classList.remove("active");
-    }
-});
+    navLinks.forEach(link => {
+        link.addEventListener("click", () => {
+            if (window.innerWidth <= 768) {
+                navigation.classList.remove("active");
+            }
+        });
+    });
+}

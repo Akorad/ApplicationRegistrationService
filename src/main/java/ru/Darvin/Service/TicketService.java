@@ -3,7 +3,6 @@ package ru.Darvin.Service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import ru.Darvin.DTO.*;
 import ru.Darvin.DTO.Mapper.EquipmentMapperImpl;
@@ -17,9 +16,11 @@ import ru.Darvin.Repository.TicketRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static ru.Darvin.Entity.Role.ADMIN;
+import static ru.Darvin.Entity.Role.GUEST;
 import static ru.Darvin.Entity.TicketType.*;
 
 @Service
@@ -40,10 +41,11 @@ public class TicketService {
     @Autowired
     private EmailService emailService;
 
-    //формат даты
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     @Autowired
     private SuppliesService suppliesService;
+
+    //формат даты
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     //создание заявки
     public Ticket createTicket(TicketCreateDTO ticketCreateDTO){
@@ -73,6 +75,40 @@ public class TicketService {
         return ticketRepository.save(ticket);
     }
 
+    //создание заявки гостем
+    public Ticket createGuestTicket(TicketCreateGuestDTO ticketCreateGuestDTO){
+        //Получение текущего пользователя из контекста безопасности
+        User user = userService.getCurrentUser();
+        if (user.getRole().equals(GUEST)) {
+            String inventoryNumber = ticketCreateGuestDTO.getEquipment().getInventoryNumber();
+
+            // Проверка наличия заявки на это оборудование
+            checkExistingTicket(inventoryNumber);
+
+            // Поиск или создание оборудования
+            Equipment equipment = findOrCreateEquipment(inventoryNumber);
+
+            Ticket ticket = new Ticket();
+
+            //Установка порядкового номера
+            ticket.setTicketNumber(ticketRepository.findMaxTicketNumber().orElse(0L) + 1);
+
+            //установка полей из ДТО
+            ticket.setDescriptionOfTheProblem(ticketCreateGuestDTO.getDescriptionOfTheProblem());
+            ticket.setGuestDepartment(ticketCreateGuestDTO.getGuestDepartment());
+            ticket.setGuestPhoneNumber(ticketCreateGuestDTO.getGuestPhoneNumber());
+            ticket.setCreatedDate(LocalDateTime.now());
+            ticket.setStatus(TicketType.CREATED);
+            ticket.setEquipment(equipment);
+
+            ticket.setUser(user);
+
+            return ticketRepository.save(ticket);
+        } else {
+            throw new SecurityException("У вас нет прав для создания такого типа заявки");
+        }
+    }
+
     //обновления заявки пользователем
     public Ticket updateUserTicket(TicketUpdateUserDTO ticketUpdateUserDTO){
         Ticket ticket = ticketRepository.findByTicketNumber(ticketUpdateUserDTO.getTicketNumber())
@@ -92,15 +128,15 @@ public class TicketService {
     }
 
     //Обновление заявки администратором
-    public Ticket updateTicket(TicketUpdateDTO ticketUpdateDTO){
-
+    public Ticket updateTicket(TicketUpdateDTO ticketUpdateDTO) {
         Ticket ticket = ticketRepository.findByTicketNumber(ticketUpdateDTO.getTicketNumber())
-                .orElseThrow(()-> new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " не найдена"));
+                .orElseThrow(() -> new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " не найдена"));
 
-        if (ticket.getStatus() == CLOSED && ticketUpdateDTO.getStatus() != CLOSED)
-            throw new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " уже закрыта и ее статус изменить нельзя");
+        if (ticket.getStatus() == CLOSED && ticketUpdateDTO.getStatus() != CLOSED) {
+            throw new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " уже закрыта и её статус изменить нельзя");
+        }
 
-        //установка полей
+        // Установка основных полей заявки
         ticket.setDetectedProblem(ticketUpdateDTO.getDetectedProblem());
         ticket.setComments(ticketUpdateDTO.getComments());
         ticket.setTypeOfWork(ticketUpdateDTO.getTypeOfWork());
@@ -110,26 +146,20 @@ public class TicketService {
             ticket.setEndDate(LocalDateTime.now());
         }
 
-        //обработка расходных материалов
-        ticket.getSupplies().clear();
-        System.out.println(ticket.getSupplies());
-        System.out.println(ticketUpdateDTO.getSupplies());
+        // Суммируем количество материалов из запроса
+        Map<String, Integer> incomingSuppliesMap = ticketUpdateDTO.getSupplies().stream()
+                .collect(Collectors.toMap(
+                        TicketUpdateDTO.SuppliesDTO::getNomenclatureCode,
+                        TicketUpdateDTO.SuppliesDTO::getQuantity,
+                        Integer::sum
+                ));
 
-        for (TicketUpdateDTO.SuppliesDTO suppliesDTO: ticketUpdateDTO.getSupplies()){
-            SuppliesDTO foundSupply = suppliesService.getSupplies(suppliesDTO.getNomenclatureCode());
-            if (foundSupply != null){
-                Supplies supplies = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
-                supplies.setQuantity(suppliesDTO.getQuantity());
-                supplies.setTicket(ticket);
-                ticket.getSupplies().add(supplies);
-            }
-            else {
-                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + suppliesDTO.getNomenclatureCode() + " не найдены");
-            }
-        }
+        // Универсальный метод для обновления материалов
+        updateSupplies(ticket, incomingSuppliesMap);
 
-        //Получение текущего пользователя из контекста безопасности
+        // Установка редактора заявки
         ticket.setEditorUser(userService.getCurrentUser());
+
         return ticketRepository.save(ticket);
     }
 
@@ -137,6 +167,7 @@ public class TicketService {
     public TicketInfoDTO getTicketInfo(Long ticketNumber){
         Ticket ticket = ticketRepository.findByTicketNumber(ticketNumber)
                 .orElseThrow(()-> new RuntimeException("Заявка с номером " + ticketNumber + " не найдена"));
+        System.out.println(ticket.getGuestDepartment());
         return TicketMapperImpl.INSTANCE.mapToInfoDTO(ticket);
     }
 
@@ -165,7 +196,8 @@ public class TicketService {
                 ticket.getStatus(),
                 UserMapperImpl.INSTANCE.maptoUserDTO(ticket.getUser()),
                 ticket.getEditorUser() != null ? UserMapperImpl.INSTANCE.maptoUserDTO(ticket.getEditorUser()) : null,
-                ticket.getEquipment().getInventoryNumber()
+                ticket.getEquipment().getInventoryNumber(),
+                ticket.getGuestDepartment()
         ));
     }
 
@@ -220,7 +252,7 @@ public class TicketService {
     }
 
     //поиск техники в базе по инвентарному номеру
-    private Equipment findOrCreateEquipment(String inventoryNumber) {
+    public Equipment findOrCreateEquipment(String inventoryNumber) {
         return equipmentRepository.findByInventoryNumber(inventoryNumber)
                 .orElseGet(() -> {
                     EquipmentDTO equipmentDTO = equipmentService.findEquipmentByInventoryNumber(inventoryNumber);
@@ -240,4 +272,43 @@ public class TicketService {
                 List.of(CREATED,IN_WORK)
         );
     }
+
+    //Обновление материалов
+    public void updateSupplies(Ticket ticket, Map<String, Integer> incomingSuppliesMap) {
+        List<Supplies> suppliesToRemove = new ArrayList<>();
+
+        for (Supplies existingSupply : ticket.getSupplies()) {
+            String nomenclatureCode = existingSupply.getNomenclatureCode();
+
+            if (incomingSuppliesMap.containsKey(nomenclatureCode)) {
+                int newQuantity = incomingSuppliesMap.get(nomenclatureCode);
+                if (existingSupply.getQuantity() != newQuantity) {
+                    existingSupply.setQuantity(newQuantity);
+                    existingSupply.setDateOfUse(LocalDateTime.now());
+                }
+                incomingSuppliesMap.remove(nomenclatureCode);
+            } else {
+                suppliesToRemove.add(existingSupply);
+            }
+        }
+
+        ticket.getSupplies().removeAll(suppliesToRemove);
+
+        for (Map.Entry<String, Integer> entry : incomingSuppliesMap.entrySet()) {
+            String nomenclatureCode = entry.getKey();
+            int quantity = entry.getValue();
+
+            SuppliesDTO foundSupply = suppliesService.getSupplies(nomenclatureCode);
+            if (foundSupply != null) {
+                Supplies newSupply = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
+                newSupply.setQuantity(quantity);
+                newSupply.setTicket(ticket);
+                newSupply.setDateOfUse(LocalDateTime.now());
+                ticket.getSupplies().add(newSupply);
+            } else {
+                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены");
+            }
+        }
+    }
+
 }

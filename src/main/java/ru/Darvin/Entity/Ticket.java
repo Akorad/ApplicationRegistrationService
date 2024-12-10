@@ -30,12 +30,13 @@ public class Ticket {
     @Column(nullable = true)
     private LocalDateTime endDate;              //Дата закрытия
 
+    @Column(length = 1000)
     private String descriptionOfTheProblem;     //Заявленная неисправность
 
-    @Column(nullable = true)
+    @Column(nullable = true,length = 1000)
     private String detectedProblem;             //Обнаруженная неисправность
 
-    @Column(nullable = true)
+    @Column(nullable = true,length = 1000)
     private String comments;                    //Комментарии
 
     @Column(nullable = true)
@@ -60,4 +61,10 @@ public class Ticket {
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Supplies> supplies;           // Список материалов
+
+    @Column(nullable = true)
+    private String guestPhoneNumber;    // Номер телефона гостя
+
+    @Column(nullable = true)
+    private String guestDepartment;     // Отдел гостя
 }

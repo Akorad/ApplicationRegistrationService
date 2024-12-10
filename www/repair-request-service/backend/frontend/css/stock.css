@@ -1,0 +1,178 @@
+/* Общие стили для контейнера и изображения */
+.material-image {
+    position: relative;
+    overflow: hidden; /* Скрывает области, выходящие за границы контейнера */
+    width: 100%; /* Адаптивная ширина */
+    max-height: 200px;
+    max-width: 200px; /* Максимальная ширина на больших экранах */
+    margin: auto; /* Центровка изображения */
+    border: 1px solid #ccc; /* Добавляем рамку для видимости */
+    border-radius: 8px; /* Скругляем углы */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Тень для эстетики */
+}
+.material-image img {
+    width: 100%; /* Полная ширина контейнера */
+    height: auto; /* Сохраняем пропорции изображения */
+    transition: transform 0.3s ease-in-out; /* Плавный переход при наведении */
+}
+/*!* Эффект увеличения при наведении *!*/
+/*.material-image:hover {*/
+/*    transform: scale(1.4); !* Увеличиваем изображение на 40% *!*/
+/*    cursor: pointer; !* Добавляем курсор для интерактивности *!*/
+/*    z-index: 999;*/
+/*}*/
+
+/*!* Стили для мобильных устройств *!*/
+/*@media (max-width: 768px) {*/
+/*    .material-image {*/
+/*        max-width: 100%; !* Используем всю ширину экрана *!*/
+/*    }*/
+/*}*/
+
+/*@media (max-width: 480px) {*/
+/*    .material-image {*/
+/*        max-width: 90%; !* Немного уменьшаем ширину для маленьких экранов *!*/
+/*    }*/
+
+/*    .material-image img {*/
+/*        transition: transform 0.2s ease-in-out; !* Уменьшаем скорость анимации *!*/
+/*    }*/
+/*}*/
+
+/* Общий контейнер переключателя */
+.form-switcher-container {
+    width: 100%;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+/* Контейнер переключателя */
+.form-switcher {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    background: #f0f0f0;
+    border-radius: 25px;
+    overflow: hidden;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Скрытие радио-кнопок */
+.form-switcher-input {
+    display: none;
+}
+
+/* Метки переключателя */
+.form-switcher-label {
+    flex: 1;
+    text-align: center;
+    padding: 10px 20px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    z-index: 2;
+}
+
+/* Активная метка */
+.form-switcher-input:checked + .form-switcher-label {
+    color: white;
+}
+
+/* Анимация фона переключателя */
+.form-switcher-background {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 50%;
+    background: #007bff;
+    border-radius: 25px;
+    transition: transform 0.3s ease;
+    z-index: 1;
+}
+
+#inventoryOption:checked ~ .form-switcher-background {
+    transform: translateX(0);
+}
+
+#molOption:checked ~ .form-switcher-background {
+    transform: translateX(100%);
+}
+
+/* Скрытие и отображение форм */
+.form-content {
+    display: none;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.form-content.hidden {
+    display: none;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.hidden {
+    display: none;
+}
+/* Контейнер изображения */
+.image-cell {
+    position: relative;
+    max-width: 200px;
+    margin: auto;
+    text-align: center;
+}
+
+/* Стили изображения */
+.image-cell img {
+    width: 100%;
+    height: auto;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+}
+
+/*!* Увеличение изображения при наведении *!*/
+/*.image-cell img:hover {*/
+/*    transform: scale(1.2);*/
+/*    cursor: pointer;*/
+/*}*/
+
+/* Маленькая кнопка "Редактировать" */
+.edit-image-btn {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 50%; /* Круглая форма */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+/*!* Эффекты наведения на кнопку *!*/
+/*.edit-image-btn:hover {*/
+/*    background-color: #0056b3;*/
+/*    transform: scale(1.1); !* Лёгкое увеличение *!*/
+/*}*/
+
+
+
+

@@ -1,71 +1,131 @@
-// Авторизация пользователя
-document.getElementById('loginForm').addEventListener('submit', async function (event) {
+document.addEventListener("DOMContentLoaded", async function () {
+    const authContainer = document.getElementById("modalContainerAuth");
+
+    if (!authContainer) {
+        console.error("Элемент #modalContainerAuth не найден.");
+        return;
+    }
+
+    // Загружаем модальное окно авторизации
+    await loadAuthModal();
+    checkAuthStatus(); // Проверка статуса авторизации при загрузке страницы
+});
+
+// Загрузка модального окна авторизации
+async function loadAuthModal() {
+    try {
+        const response = await fetch("/templates/auth.html");
+        if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
+        const authHTML = await response.text();
+        document.getElementById("modalContainerAuth").innerHTML = authHTML;
+
+        // Инициализация событий для авторизации
+        initAuthEvents();
+    } catch (error) {
+        console.error("Ошибка загрузки auth.html:", error);
+    }
+}
+
+// Инициализация событий для авторизации
+function initAuthEvents() {
+    const loginForm = document.getElementById('loginForm');
+    const loginButton = document.getElementById("loginButton");
+    const logoutButton = document.getElementById("logoutButton");
+
+    if (!loginForm || !loginButton || !logoutButton) {
+        console.error("Не все элементы авторизации загружены.");
+        return;
+    }
+
+    // Обработчик отправки формы авторизации
+    loginForm.addEventListener('submit', handleLogin);
+
+    // Обработчик кнопки "Войти"
+    loginButton.addEventListener("click", () => $('#loginModal').modal('show'));
+
+    // Обработчик кнопки "Выйти"
+    logoutButton.addEventListener("click", handleLogout);
+}
+
+// Обработчик отправки формы авторизации
+async function handleLogin(event) {
     event.preventDefault();
-    const formData = new FormData(document.getElementById('loginForm'));
+    const formData = new FormData(event.target);
     const requestData = {
         username: formData.get('username'),
         password: formData.get('password')
     };
 
-    const response = await fetch('http://localhost:8080/auth/sign-in', {
-        method: 'POST',
-        body: JSON.stringify(requestData),
-        headers: {
-            'Content-Type': 'application/json'
-        }
-    });
+    try {
+        const response = await fetch('http://localhost:8080/auth/sign-in', {
+            method: 'POST',
+            body: JSON.stringify(requestData),
+            headers: { 'Content-Type': 'application/json' }
+        });
 
-    if (response.ok) {
-        const data = await response.json();
-        localStorage.setItem('token', data.token);
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('token', data.token);
 
-        // Декодирование роли пользователя из токена
-        const token = data.token;
-        const parsedToken = parseJwt(token);
-
-        if (parsedToken && parsedToken.role) { // Проверяем, что role определена
-            let userRole = parsedToken.role;
-            localStorage.setItem('userRole', userRole);
-            alert('Вход выполнен успешно!');
-            $('#loginModal').modal('hide');
-            fetchTickets(); // Обновление списка заявок после входа
+            // Декодирование роли пользователя
+            const parsedToken = parseJwt(data.token);
+            if (parsedToken?.role) {
+                localStorage.setItem('userRole', parsedToken.role);
+                showAlert('Вход выполнен успешно!');
+                $('#loginModal').modal('hide');
+                checkAuthStatus(); // Обновление состояния кнопок
+                location.reload();
+            } else {
+                console.error("Роль не найдена");
+            }
         } else {
-            console.error("Роль не найдена");
+            showAlert('Ошибка при входе. Проверьте имя пользователя и пароль.');
         }
-    } else {
-        alert('Ошибка при входе. Проверьте имя пользователя и пароль.');
+    } catch (error) {
+        showAlert('Ошибка при авторизации.', 'danger'); // Используем Bootstrap alert danger
+        console.error("Ошибка при авторизации:", error);
     }
-});
+}
 
-// Проверка авторизации пользователя
+// Обработчик кнопки "Выйти"
+function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userRole");
+    showAlert("Выход выполнен");
+    checkAuthStatus(); // Обновление состояния кнопок
+    location.reload();
+}
+
+// Проверка статуса авторизации
 function checkAuthStatus() {
     const token = localStorage.getItem("token");
-
     const loginButton = document.getElementById("loginButton");
     const logoutButton = document.getElementById("logoutButton");
 
     if (!loginButton || !logoutButton) {
-        // Если кнопки ещё не загрузились, повторяем попытку позже
-        setTimeout(checkAuthStatus, 50);
+        setTimeout(checkAuthStatus, 50); // Повторная попытка, если элементы еще не загружены
         return;
     }
-
 
     if (token) {
         const parsedToken = parseJwt(token);
 
-        if (parsedToken && parsedToken.role) {
-            // Пользователь авторизован
+        // Проверяем срок действия токена
+        const currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
+        if (parsedToken?.exp && parsedToken.exp < currentTime) {
+            console.warn("Токен истек.");
+            handleLogout(); // Удаляем токен и обновляем интерфейс
+            return;
+        }
+
+        // Если токен валиден
+        if (parsedToken?.role) {
             loginButton.style.display = "none";
             logoutButton.style.display = "inline-block";
         } else {
-            // Некорректный токен, удаляем его
-            localStorage.removeItem("token");
-            loginButton.style.display = "inline-block";
-            logoutButton.style.display = "none";
+            handleLogout(); // Удаляем токен и обновляем интерфейс
         }
     } else {
-        // Пользователь не авторизован
         loginButton.style.display = "inline-block";
         logoutButton.style.display = "none";
     }
@@ -75,29 +135,9 @@ function checkAuthStatus() {
 function parseJwt(token) {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
+        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
+    ).join(''));
 
     return JSON.parse(jsonPayload);
 }
-
-// Обработчик для кнопки "Войти"
-document.addEventListener("click", function (event) {
-    if (event.target.id === "loginButton") {
-        $('#loginModal').modal('show'); // Открытие модального окна авторизации
-    }
-});
-
-// Обработчик для кнопки "Выйти"
-document.addEventListener("click", function (event) {
-    if (event.target.id === "logoutButton") {
-        localStorage.removeItem("token");
-        localStorage.removeItem("userRole");
-        alert("Выход выполнен");
-        checkAuthStatus(); // Обновление состояния кнопок
-    }
-});
-
-// Проверка авторизации после загрузки страницы и хедера
-document.addEventListener("DOMContentLoaded", checkAuthStatus);

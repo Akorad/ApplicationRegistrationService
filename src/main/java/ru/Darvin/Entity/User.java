@@ -36,10 +36,15 @@ public class User implements UserDetails {
     @Column(name = "role", nullable = false)
     private Role role;                  //Роль пользователя
 
+    @Column(name = "email")
     private String email;               //Почта
     private String department;          //Наименование отдела в котором работает
     private String phoneNumber;         //Номер телефона
+
+    @Column(name = "first_name")
     private String firstName;           //Имя
+
+    @Column(name = "last_name")
     private String lastName;            //Фамилия
 
 

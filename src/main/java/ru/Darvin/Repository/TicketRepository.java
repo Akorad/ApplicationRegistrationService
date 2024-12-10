@@ -18,6 +18,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
     Optional<Ticket> findByEquipmentInventoryNumber(String inventoryNumber);
 
+    Optional<Ticket> findByEquipmentInventoryNumberAndStatusNot(String inventoryNumber, TicketType status);
+
     @Query("SELECT MAX(t.ticketNumber) FROM Ticket t")
     Optional<Long> findMaxTicketNumber();
 
@@ -37,5 +39,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
                                String inventoryNumber, Pageable pageable);
 
     List<Ticket> findByEndDateBeforeAndStatusNotIn(LocalDateTime endDate, List<TicketType> statuses);
+
+    @Query("SELECT t FROM Ticket t JOIN t.supplies s WHERE s.nomenclatureCode = :nomenclatureCode")
+    List<Ticket> findTicketsByNomenclatureCode(String nomenclatureCode);
 
 }

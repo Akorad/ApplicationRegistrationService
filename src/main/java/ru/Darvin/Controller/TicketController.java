@@ -6,11 +6,16 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.Darvin.DTO.*;
 import ru.Darvin.Entity.Ticket;
 import ru.Darvin.Entity.TicketType;
+import ru.Darvin.Exception.PdfGenerationException;
+import ru.Darvin.Exception.TicketNotFoundException;
+import ru.Darvin.Repository.TicketRepository;
+import ru.Darvin.Service.PdfService;
 import ru.Darvin.Service.TicketService;
 
 @RestController
@@ -19,6 +24,8 @@ import ru.Darvin.Service.TicketService;
 public class TicketController {
 
     private final TicketService ticketService;
+    private final TicketRepository ticketRepository;
+    private final PdfService pdfService;
 
     @Operation(summary = "Создать заявку", description = "Создает новую заявку на ремонт")
     @PostMapping("/create")
@@ -75,6 +82,31 @@ public class TicketController {
         TicketFilterDTO filter = new TicketFilterDTO(status, firstName, lastName, editorFirstName, editorLastName, inventoryNumber);
         return ticketService.getTicketSummaries(filter, pageable);
     }
+
+    @Operation(summary = "Показать или скачать PDF форму", description = "Предоставляет PDF форму для печати заявки")
+    @GetMapping("/print/{ticketNumber}")
+    public ResponseEntity<byte[]> printTicket(@PathVariable Long ticketNumber) {
+        try {
+            byte[] pdf = pdfService.generateTicketPdf(ticketNumber);
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "inline; filename=ticket_" + ticketNumber + ".pdf")
+                    .body(pdf);
+        } catch (TicketNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .header("Content-Type", "application/json")
+                    .body(("Ошибка: " + e.getMessage()).getBytes());
+        } catch (PdfGenerationException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "application/json")
+                    .body(("Ошибка при генерации PDF: " + e.getMessage()).getBytes());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .header("Content-Type", "application/json")
+                    .body(("Внутренняя ошибка сервера: " + e.getMessage()).getBytes());
+        }
+    }
+
 }
 
 

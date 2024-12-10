@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Заявка №[[${ticket.ticketNumber}]]</title>
+</head>
+<body>
+<style>
+    tr,td,table,tbody{
+        border: 1px solid black;
+    }
+    body {
+        font-family: "Times New Roman", serif;
+    }
+    p {
+        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+    td{
+        height: 27px; margin: 0;padding: 0; text-align: center;
+    }
+    table{
+        border-collapse: collapse; width: 100%;
+    }
+</style>
+<p class='first' style='text-align: center;'><b> Заявка № [[${ticket.ticketNumber}]] <u> </u> </b></p>
+<p class='first' style='text-align: center;'>на проведение ремонтных работ</p>
+<table>
+    <tbody>
+    <tr>
+        <td class='first' style='width:25%;' rowspan='2'><p>Подразделение <br> УлГТУ;<br>№ телефона</p></td>
+        <td class='first' style='width:25%;' rowspan='2'><p>Тип устройства и<br>его инвентарный <br> номер</p></td>
+        <td class='first' colspan='2'><p>Дата; Подпись</p></td>
+    </tr>
+    <tr>
+        <td class='first' style='width:25%;'><p>Заказчик</p></td>
+        <td class='first' style='width:25%;'><p>Исполнитель</p></td>
+    </tr>
+    <tr>
+        <td class='first'  style='hyphens: auto;'>[[${department[0]}]]<br></td>
+        <td class='first'>[[${ticket.equipment.inventoryNumber}]]</td>
+        <td class='first'>[[${#temporals.format(ticket.createdDate, 'dd.MM.yyyy HH:mm')}]]</td>
+        <td class='first'><br></td>
+    </tr>
+    <tr>
+        <td class='first'  style='hyphens: auto;'>[[${department[1]}]]<br></td>
+        <td class='first' style='hyphens: auto;'>[[${assetName[0]}]]<br></td>
+        <td>[[${ticket.user.firstName}]] [[${ticket.user.lastName}]]<br></td>
+        <td th:text="${ticket.editorUser != null ? ticket.editorUser.firstName + ' ' + ticket.editorUser.lastName : ''}"><br></td>
+    </tr>
+    <tr>
+        <td class='first'  style='hyphens: auto;'>[[${department[2]}]]<br></td>
+        <td class='first' style='hyphens: auto;'>[[${assetName[1]}]]<br></td>
+        <td><br></td>
+        <td><br></td>
+    </tr>
+    <tr>
+        <td class='first' >[[${ticket.user.phoneNumber}]]<br></td>
+        <td class='first' style='hyphens: auto;'>[[${assetName[2]}]]<br></td>
+        <td><br></td>
+        <td><br></td>
+    </tr>
+    <tr>
+        <td class='first'><br></td>
+        <td class='first' style='hyphens: auto;'>[[${assetName[3]}]]<br></td>
+        <td><br></td>
+        <td><br></td>
+    </tr>
+    <tr>
+        <td class='first' style='hyphens: auto;' rowspan='5'><p>Описание <br>неисправности</p></td>
+        <td style='text-align: left'  colspan='3'> [[${description[0]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${description[1]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${description[2]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${description[3]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${description[4]}]]<br></td>
+    </tr>
+    <tr>
+        <td class='first' rowspan='5'><p> Причина неисправности,<br>вид обслуживания, ремонта.<br></p></td>
+        <td style='text-align: left'; colspan='3'> [[${detected[0]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${detected[1]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${detected[2]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${detected[3]}]]<br></td>
+    </tr>
+    <tr>
+        <td colspan='3'>
+            <!--<p>".($data['type_of_work'])."</p>-->
+            <p class='first'> <input type='checkbox' /> Заправка
+                <input type='checkbox' /> Ремонт
+                <input type='checkbox' /> Модернизация
+                <input type='checkbox' /> Прочие виды работ</p></td>
+    </tr>
+    <tr>
+        <td class='first' rowspan='9'><p>Необходимые <br>блоки и детали</p></td>
+        <td style='text-align: left' colspan='3'> [[${supplies[0]}]]<br> </td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[1]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[2]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[3]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[4]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[5]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[6]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[7]}]]<br></td>
+    </tr>
+    <tr>
+        <td style='text-align: left' colspan='3'> [[${supplies[8]}]]<br></td>
+    </tr>
+    <tr>
+        <td class='first' colspan='2'><p>Дата получения деталей, расходных<br> материалов; Подпись.</p></td>
+        <td class='first' colspan='2'><p>Дата выполнения заявки; Подпись</p></td>
+    </tr>
+    <tr>
+        <td class='first' ><p>Отпустил</p></td>
+        <td class='first' ><p>Получил</p></td>
+        <td class='first' ><p>Заказчик</p></td>
+        <td class='first' ><p>Исполнитель</p></td>
+    </tr>
+    <tr>
+        <td><br></td>
+        <td><br></td>
+        <td>[[${#temporals.format(ticket.endDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
+        <td><br></td>
+    </tr>
+    <tr>
+        <td><br></td>
+        <td><br></td>
+        <td>[[${ticket.user.firstName}]] [[${ticket.user.lastName}]]<br></td>
+        <td th:text="${ticket.editorUser != null ? ticket.editorUser.firstName + ' ' + ticket.editorUser.lastName : ''}"><br></td>
+    </tr>
+    <tr>
+        <td><br></td>
+        <td><br></td>
+        <td><br></td>
+        <td><br></td>
+    </tr>
+    </tbody>
+</table>
+<p class='first' >Начальник отдела обслуживания и ремонта ВиОТ</p>
+<p class='first' >Главный специалист группы обслуживания оргтехники</p>
+</body>
+</html>

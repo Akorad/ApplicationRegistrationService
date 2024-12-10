@@ -99,6 +99,13 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>`;
             return;
         }
+        if (!inventoryNumber){
+            inventoryResult.innerHTML = `
+            <div class="alert alert-danger">
+                Введите инвентарный номер.
+            </div>`;
+            return;
+        }
 
         // Отправляем запрос на сервер
         fetch(`http://localhost:8080/api/equipments/${inventoryNumber}`, {
@@ -137,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
             });
     });
 });
+
+//скрытие колонок для пользователей
 document.addEventListener('DOMContentLoaded', function () {
     const userRole = localStorage.getItem('userRole'); // Или декодирование из токена, если требуется
     const creatorColumn = document.querySelectorAll('th:nth-child(6), td:nth-child(6)'); // 6-я колонка "Создатель"
@@ -148,36 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
         editorColumn.forEach(el => el.style.display = 'none');
     }
 });
-// подключение хедера
-document.addEventListener("DOMContentLoaded", async function () {
-    const headerContainer = document.getElementById("header-container");
-    if (!headerContainer) {
-        console.error("Элемент #header-container не найден.");
-        return;
-    }
 
-    async function loadHeader() {
-        try {
-            const response = await fetch("/header/header.html");
-            if (!response.ok) throw new Error(`Ошибка загрузки: ${response.status}`);
-            const headerHTML = await response.text();
-            headerContainer.innerHTML = headerHTML;
-
-
-            // Загружаем и выполняем header.js
-            const script = document.createElement("script");
-            script.src = "/js/header.js"; // Убедитесь, что путь корректный
-            script.defer = true;
-            document.body.appendChild(script);
-
-
-        } catch (error) {
-            console.error("Ошибка загрузки header.html:", error);
-        }
-    }
-
-    await loadHeader();
-});
 
 
 

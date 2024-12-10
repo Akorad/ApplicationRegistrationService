@@ -27,8 +27,7 @@
                                     type="text"
                                     class="form-control"
                                     id="inventoryNumber"
-                                    th:value="${ticket.equipment.inventoryNumber}"
-                                    th:readonly="${user.role != T(ru.Darvin.Entity.Role).USER}">
+                                    th:value="${ticket.equipment.inventoryNumber}">
                         </div>
 
                         <!-- Наименование техники (доступно для всех) -->
@@ -55,8 +54,26 @@
                             <textarea
                                     class="form-control"
                                     id="descriptionOfTheProblem"
-                                    th:text="${ticket.descriptionOfTheProblem}"
-                                    th:readonly="${user.role != T(ru.Darvin.Entity.Role).USER}"></textarea>
+                                    th:text="${ticket.descriptionOfTheProblem}"></textarea>
+                        </div>
+                        <!-- Департамент -->
+                        <div class="mb-3">
+                            <label class="form-label">Департамент</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="department"
+                                    th:value="${!#strings.isEmpty(ticket.user.department) ? ticket.user.department : ticket.guestDepartment}">
+                        </div>
+
+                        <!-- Номер телефона -->
+                        <div class="mb-3">
+                            <label class="form-label">Номер телефона</label>
+                            <input
+                                    type="text"
+                                    class="form-control"
+                                    id="phoneNumber"
+                                    th:value="${!#strings.isEmpty(ticket.user.phoneNumber) ? ticket.user.phoneNumber : ticket.guestPhoneNumber}">
                         </div>
                     </div>
 
@@ -94,16 +111,12 @@
                         <!-- Статус заявки -->
                         <div class="mb-3">
                             <label class="form-label">Статус заявки</label>
-                            <select
-                                    class="form-select"
-                                    id="status"
-                                    th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}"
-                                    th:value="${ticket.status}">
-                                <option value="CREATED">Создана</option>
-                                <option value="IN_WORK">В работе</option>
-                                <option value="WAITING_FOR_SPARE_PARTS">Ожидание запчастей</option>
-                                <option value="READY">Готово</option>
-                                <option value="CLOSED">Закрыта</option>
+                            <select class="form-select" id="modalStatus" th:disabled="${user.role != T(ru.Darvin.Entity.Role).ADMIN}">
+                                <option value="CREATED" th:attr="selected=${ticket.status.toString() == 'CREATED'}">Создана</option>
+                                <option value="IN_WORK" th:attr="selected=${ticket.status.toString() == 'IN_WORK'}">В работе</option>
+                                <option value="WAITING_FOR_SPARE_PARTS" th:attr="selected=${ticket.status.toString() == 'WAITING_FOR_SPARE_PARTS'}">Ожидание запчастей</option>
+                                <option value="READY" th:attr="selected=${ticket.status.toString() == 'READY'}">Готово</option>
+                                <option value="CLOSED" th:attr="selected=${ticket.status.toString() == 'CLOSED'}">Закрыта</option>
                             </select>
                         </div>
 
@@ -128,6 +141,7 @@
             <div class="modal-footer justify-content-between">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
                 <div>
+                    <button type="button" class="btn openPdfButton" th:onclick="'openPdf(' + ${ticket.ticketNumber} + ')'">Печать PDF заявки</button>
                     <button type="button" id="deleteButton" class="btn btn-danger">Удалить</button>
                     <button type="button" id="saveButton" class="btn btn-primary">Сохранить изменения</button>
                 </div>

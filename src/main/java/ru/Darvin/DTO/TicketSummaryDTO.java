@@ -16,9 +16,10 @@ public class TicketSummaryDTO {
     private UserDTO user;                       //ссылка на создавшего заявку пользователя
     private UserDTO editorUser;                 //ссылка на редактирующего заявку пользователя
     private String inventoryNumber;             //Инвентарный номер
+    private String guestDepartment;             //Отдел гостя
 
     public TicketSummaryDTO(Long ticketNumber, LocalDateTime createdDate, LocalDateTime endDate,
-                            TicketType status, UserDTO user, UserDTO editorUser, String inventoryNumber) {
+                            TicketType status, UserDTO user, UserDTO editorUser, String inventoryNumber, String guestDepartment) {
         this.ticketNumber = ticketNumber;
         this.createdDate = createdDate;
         this.endDate = endDate;
@@ -26,5 +27,6 @@ public class TicketSummaryDTO {
         this.user = user;
         this.editorUser = editorUser;
         this.inventoryNumber = inventoryNumber;
+        this.guestDepartment = guestDepartment;
     }
 }

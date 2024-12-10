@@ -1,0 +1,18 @@
+<header>
+    <nav class="navigation">
+        <ul class="nav-list">
+            <% if (userRole === 'ADMIN') { %>
+                <li><a href="/" class="nav-link">Заявки</a></li>
+                <li><a href="/stock" class="nav-link">Расходные материалы</a></li>
+                <li><a href="/equipments" class="nav-link">Техника</a></li>
+            <% } %>
+        </ul>
+    </nav>
+    <div class="auth-controls">
+        <% if (userRole) { %>
+            <button id="logoutButton">Выйти</button>
+        <% } else { %>
+            <button id="loginButton">Войти</button>
+        <% } %>
+    </div>
+</header>

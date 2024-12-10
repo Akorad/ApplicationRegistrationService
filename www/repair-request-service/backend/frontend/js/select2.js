@@ -3,11 +3,30 @@ document.addEventListener("DOMContentLoaded", function () {
     const selectedSupplies = [];
     let searchInput, dropdown, selectedSuppliesContainer;
 
-    // Загрузка данных с сервера
+// Загрузка данных с сервера
     async function loadSupplies() {
         try {
-            const response = await fetch("http://localhost:8080/supplies/mol/Дроздова Татьяна Викторовна");
+            // Получаем токен из localStorage
+            const token = localStorage.getItem('token');
+
+            // Если токен существует, добавляем его в заголовки
+            const response = await fetch("http://localhost:8080/api/supplies/mol/Дроздова Татьяна Викторовна", {
+                method: 'GET', // Укажите метод GET
+                headers: {
+                    "Authorization": `Bearer ${token}`, // Добавляем заголовок с токеном
+                    'Content-Type': 'application/json' // Указываем тип контента
+                }
+            });
+
+            // Проверяем успешность ответа
+            if (!response.ok) {
+                throw new Error(`Ошибка: ${response.status}`);
+            }
+
+            // Получаем данные из ответа
             const data = await response.json();
+
+            // Обрабатываем полученные данные
             supplyData.push(
                 ...data.map((item) => ({
                     id: item.НоменклатураКод,
@@ -16,9 +35,10 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         } catch (error) {
             console.error("Ошибка загрузки данных:", error);
-            alert("Ошибка при загрузке данных. Проверьте соединение с сервером.");
+            showAlert("Ошибка при загрузке данных. Проверьте соединение с сервером.");
         }
     }
+
 
     // Создание элемента расходного материала
     function createSupplyElement(supply) {
@@ -27,10 +47,10 @@ document.addEventListener("DOMContentLoaded", function () {
         div.setAttribute("data-nomenclature-code", supply.id);
 
         div.innerHTML = `
-            <span>${supply.name}</span>
-            <input type="number" value="${supply.quantity}" min="1" />
-            <button class="btn btn-danger btn-sm">Удалить</button>
-        `;
+        <span>${supply.name}</span>
+        <input type="number" value="${supply.quantity}" min="1" />
+        <button class="btn btn-danger btn-sm">Удалить</button>
+    `;
 
         div.querySelector("input").addEventListener("input", (e) => {
             supply.quantity = Number(e.target.value);
@@ -39,10 +59,22 @@ document.addEventListener("DOMContentLoaded", function () {
         div.querySelector("button").addEventListener("click", () => {
             const index = selectedSupplies.indexOf(supply);
             if (index > -1) selectedSupplies.splice(index, 1);
+            enableDropdownOption(supply.id); // Активируем пункт в выпадающем списке
             div.remove();
         });
 
         return div;
+    }
+
+    // Включение пункта в выпадающем списке
+    function enableDropdownOption(itemId) {
+        const dropdownItems = dropdown.querySelectorAll(".dropdown-item");
+        dropdownItems.forEach((option) => {
+            if (option.dataset.id === String(itemId)) {
+                option.classList.remove("disabled"); // Убираем класс "disabled"
+                option.style.pointerEvents = "auto"; // Включаем клики
+            }
+        });
     }
 
     // Рендеринг выбранных материалов
@@ -81,16 +113,26 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         items.forEach((item) => {
+            const isAlreadySelected = selectedSupplies.some(
+                (supply) => supply.id === item.id
+            );
+
             const option = document.createElement("div");
             option.classList.add("dropdown-item");
+            if (isAlreadySelected) {
+                option.classList.add("disabled");
+                option.style.pointerEvents = "none"; // Отключаем клики
+            }
             option.textContent = item.name;
             option.dataset.id = item.id;
             dropdown.appendChild(option);
 
             option.addEventListener("click", () => {
-                addSupply(item);
-                dropdown.classList.remove("active");
-                searchInput.value = "";
+                if (!isAlreadySelected) {
+                    addSupply(item);
+                    dropdown.classList.remove("active");
+                    searchInput.value = "";
+                }
             });
         });
 
@@ -100,9 +142,25 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Добавление расходного материала
     function addSupply(item) {
-        if (selectedSupplies.some((supply) => supply.id === item.id)) return;
+        if (selectedSupplies.some((supply) => supply.id === item.id)) {
+            showAlert("Этот материал уже добавлен.");
+            return; // Прерываем выполнение, если материал уже выбран
+        }
+
         selectedSupplies.push({ id: item.id, name: item.name, quantity: 1 });
         renderSelectedSupplies();
+        disableDropdownOption(item.id); // Отключаем выбранный пункт
+    }
+
+    // Отключение выбранного пункта в выпадающем списке
+    function disableDropdownOption(itemId) {
+        const dropdownItems = dropdown.querySelectorAll(".dropdown-item");
+        dropdownItems.forEach((option) => {
+            if (option.dataset.id === String(itemId)) {
+                option.classList.add("disabled"); // Добавляем класс "disabled"
+                option.style.pointerEvents = "none"; // Отключаем клики
+            }
+        });
     }
 
     // Обработчики поиска

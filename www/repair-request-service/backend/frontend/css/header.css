@@ -27,6 +27,11 @@ body, html {
     display: flex;
     flex-direction: row; /* Горизонтальное меню по умолчанию */
 }
+.navigation .btn {
+    border-width: thin;
+    border-style: solid;
+    border-color: black;
+}
 
 /* Список ссылок */
 .nav-list {
@@ -81,7 +86,6 @@ body, html {
 
     .navigation .btn {
         padding: 16px;
-
     }
 
     /* Меню скрыто по умолчанию на мобильных устройствах */
@@ -95,7 +99,7 @@ body, html {
         width: 100%; /* Ширина меню на весь экран */
         height: auto; /* Высота меню на весь экран */
         z-index: 1000; /* Чтобы меню было поверх контента */
-        padding-top: 60px; /* Отступ сверху, чтобы меню не перекрывало логотип */
+        /*padding-top: 60px; !* Отступ сверху, чтобы меню не перекрывало логотип *!*/
     }
 
 

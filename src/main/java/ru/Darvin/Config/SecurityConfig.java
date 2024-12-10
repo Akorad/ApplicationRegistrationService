@@ -42,12 +42,24 @@ public class SecurityConfig {
                     return corsConfiguration;
                 }))
                 .authorizeHttpRequests(auth -> auth
-//                        .requestMatchers("/auth/**").permitAll() // открытый доступ
-//                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll() //открытый доступ для swagger
-//                        .requestMatchers("/api/equipments/**","/api/tickets/update",
-//                                "/api/admin/test-email","/supplies/**").hasAuthority("ADMIN") // доступ только для роли ADMIN
-//                        .anyRequest().authenticated() // все остальные запросы требуют аутентификации
-                        .anyRequest().permitAll() // для тестов всем доступ
+                        // Открытый доступ
+                        .requestMatchers("/auth/**", "/images/**").permitAll()
+                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                        //доступ для гостя
+                        .requestMatchers("/api/guest/**").hasAuthority("GUEST")
+
+                        // Доступ для администраторов
+                        .requestMatchers("/api/equipments/**", "/api/tickets/update",
+                                "/api/admin/test-email", "/supplies/**").hasAuthority("ADMIN")
+
+                        // Доступ для аутентифицированных пользователей
+                        .requestMatchers("/api/tickets/userUpdate", "/api/tickets/create",
+                                "/api/tickets/summary", "/api/tickets/info/**", "/api/supplies/mol/**",
+                                "/api/tickets/delete/**", "/api/html/tickets/info/**","/api/tickets/print/**").authenticated()
+
+                        // Все остальные запросы требуют роли ADMIN
+                        .anyRequest().hasAuthority("ADMIN")  // Все остальные запросы требуют роли ADMIN
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

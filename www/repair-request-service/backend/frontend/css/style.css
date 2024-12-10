@@ -326,3 +326,11 @@ span {
         display: none; /* Скрываем на десктопах */
     }
 }
+
+#alertContainer {
+    z-index: 1060; /* Устанавливаем z-index выше, чем у модальных окон */
+}
+.closed-ticket {
+    background-color: gray !important; /* Серый фон */
+    color: white !important;          /* Белый текст */
+}

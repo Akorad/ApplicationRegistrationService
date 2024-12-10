@@ -33,16 +33,18 @@ async function deleteTicket(ticketNumber) {
         });
 
         if (response.ok) {
-            alert("Заявка успешно удалена");
+            showAlert("Заявка успешно удалена");
             $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
-            fetchTickets(); // Обновить список заявок
+            if (document.getElementById('ticketTableBody')){
+                fetchTickets(); // Обновить список заявок
+            }
         } else {
             const errorText = await response.text();
-            alert(`Ошибка при удалении заявки: ${errorText}`);
+            showAlert(`Ошибка при удалении заявки: ${errorText}`);
         }
     } catch (error) {
         console.error("Ошибка выполнения запроса:", error);
-        alert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
+        showAlert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
     }
 }
 
@@ -64,16 +66,18 @@ async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNu
         });
 
         if (response.ok) {
-            alert("Заявка успешно сохранена");
+            showAlert("Заявка успешно сохранена");
             $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
-            fetchTickets(); // Обновить список заявок
+            if (document.getElementById('ticketTableBody')){
+                fetchTickets(); // Обновить список заявок
+            }
         } else {
             const errorText = await response.text();
-            alert(`Ошибка при сохранении заявки: ${errorText}`);
+            showAlert(`Ошибка при сохранении заявки: ${errorText}`);
         }
     } catch (error) {
         console.error("Ошибка выполнения запроса:", error);
-        alert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
+        showAlert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
     }
 }
 
@@ -88,14 +92,6 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
         status,
         supplies
     };
-    console.log("Payload:", {
-        ticketNumber,
-        detectedProblem,
-        comments,
-        typeOfWork,
-        status,
-        supplies
-    });
     try {
         const response = await fetch('http://localhost:8080/api/tickets/update', {
             method: "PUT", // Используем PUT для обновления
@@ -107,16 +103,18 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
         });
 
         if (response.ok) {
-            alert("Заявка успешно сохранена");
+            showAlert("Заявка успешно сохранена");
             $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
-            fetchTickets(); // Обновить список заявок
+            if (document.getElementById('ticketTableBody')){
+                fetchTickets(); // Обновить список заявок
+            }
         } else {
             const errorText = await response.text();
-            alert(`Ошибка при сохранении заявки: ${errorText}`);
+            showAlert(`Ошибка при сохранении заявки: ${errorText}`);
         }
     } catch (error) {
         console.error("Ошибка выполнения запроса:", error);
-        alert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
+        showAlert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
     }
 }
 
@@ -139,7 +137,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     const detectedProblem = document.getElementById("detectedProblem").value;
                     const comments = document.getElementById("comments").value;
                     const typeOfWork = document.getElementById("typeOfWork").value;
-                    const status = document.getElementById("status").value;
+                    const status = document.getElementById("modalStatus").value;
                     const supplies = getSupplies(); // Функция для сбора данных по материалам
                     saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies);
                 } else {
@@ -156,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (ticketNumber && confirm("Вы уверены, что хотите удалить эту заявку?")) {
                     deleteTicket(ticketNumber);
                 } else {
-                    alert("Не удалось получить номер заявки. Попробуйте еще раз.");
+                    showAlert("Не удалось получить номер заявки. Попробуйте еще раз.");
                 }
             });
         } else {
@@ -193,6 +191,41 @@ function getSupplies() {
     });
 
     return supplies;
+}
+
+// Функция для открытия PDF
+function openPdf(ticketNumber) {
+    // Получаем токен из localStorage
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+        alert("Токен не найден!");
+        return;
+    }
+
+    // Делаем запрос с передачей токена в заголовке
+    fetch(`http://localhost:8080/api/tickets/print/${ticketNumber}`, {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${token}`
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                return response.text().then(text => {
+                    throw new Error(text || 'Неизвестная ошибка');
+                });
+            }
+            return response.blob(); // Получаем ответ как Blob (PDF)
+        })
+        .then(blob => {
+            // Создаем ссылку на PDF и открываем его в новой вкладке
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank');
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+        });
 }
 
 

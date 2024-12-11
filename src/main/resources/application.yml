@@ -11,9 +11,29 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  security:
+    oauth2:
+      client:
+        registration:
+          openid:
+            client-id: 89a015d24a66b01a77fe30059820593e177c43b32c9c3c4ea711eb5610639347
+            client-secret: 1c1d2b50e647288824223edfbf0fafd1a003c063c5c7191b8b7ac42fb7ca714f
+            scope: openid
+            authorization-grant-type: authorization_code
+            redirect-uri: "{baseUrl}/login/oauth2/code/openid"
+            client-name: openid
+        provider:
+          openid:
+            authorization-uri: https://lk.ulstu.ru/?q=oidc/auth
+            token-uri: https://lk.ulstu.ru/?q=oidc/token
+            user-info-uri: https://lk.ulstu.ru/?q=oidc/userinfo
+            jwk-set-uri: https://lk.ulstu.ru/?q=oidc/jwks
+            user-name-attribute: sub
+
   web:
     resources:
       static-locations: file:src/main/source/images/
+
   mail:
     host: smtp.gmail.com
     port: 587
@@ -22,6 +42,7 @@ spring:
     properties:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
+
 springdoc:
   api-docs:
     path: /v3/api-docs

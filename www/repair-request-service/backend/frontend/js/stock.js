@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Загрузка списка материалов
     async function loadMaterials() {
         try {
-            const response = await fetch("http://localhost:8080/api/supplies/mol/Дроздова Татьяна Викторовна", {
+            const response = await fetch(`${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }
@@ -37,11 +37,11 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             row.innerHTML = `
         <td class="image-cell" style="position: relative;">
-            <img src="http://localhost:8080/images/${material.id}.jpg" 
+            <img src="${window.config.apiUrl}/images/${material.id}.jpg" 
                  alt="${material.name}" 
                  class="material-image"
                  onclick="openImageModal('${material.id}')"
-                 onerror="this.onerror=null;this.src='http://localhost:8080/images/default-material.jpg';">
+                 onerror="this.onerror=null;this.src='${window.config.apiUrl}/images/default-material.jpg';">
             <button class="edit-image-btn" onclick="openEditModal('${material.id}')">
                 🖊️
             </button>
@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         const requestsList = document.getElementById("requestsList");
         requestsList.innerHTML = "Загрузка...";
         try {
-            const response = await fetch(`http://localhost:8080/api/supplies/nomenclatureCode/${nomenclatureCode}`, {
+            const response = await fetch(`${window.config.apiUrl}/api/supplies/nomenclatureCode/${nomenclatureCode}`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }
@@ -151,7 +151,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     // Открытие модального окна с изображением
     window.openImageModal = function(imageId) {
         const modalImage = document.getElementById('modalImage');
-        modalImage.src = `http://localhost:8080/images/${imageId}.jpg`;
+        modalImage.src = `${window.config.apiUrl}/images/${imageId}.jpg`;
         const imageModal = new bootstrap.Modal(document.getElementById('imageModal'));
         imageModal.show();
     }
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", async function () {
         };
 
         // Отправляем запрос на сервер для сохранения или обновления URL изображения
-        fetch(`http://localhost:8080/api/supplies-image/update-supplies-images`, {
+        fetch(`${window.config.apiUrl}/api/supplies-image/update-supplies-images`, {
             method: 'POST',
             headers: {
                 "Content-Type": "application/json",
@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             quantity: parseInt(document.getElementById("quantityInventory").value, 10),
         };
 
-        fetch("http://localhost:8080/api/SuppliesIssue/byInventory", {
+        fetch(`${window.config.apiUrl}/api/SuppliesIssue/byInventory`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             quantity: parseInt(document.getElementById("quantityMol").value, 10),
         };
 
-        fetch("http://localhost:8080/api/SuppliesIssue/byMol", {
+        fetch(`${window.config.apiUrl}/api/SuppliesIssue/byMol`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -296,7 +296,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         // Формируем запрос с фильтрацией по датам
         try {
-            const response = await fetch(`http://localhost:8080/api/supplies/filterByDate?startDate=${startDate}&endDate=${endDate}`, {
+            const response = await fetch(`${window.config.apiUrl}/api/supplies/filterByDate?startDate=${startDate}&endDate=${endDate}`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }

@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", function () {
             const token = localStorage.getItem('token');
 
             // Если токен существует, добавляем его в заголовки
-            const response = await fetch("http://localhost:8080/api/supplies/mol/Дроздова Татьяна Викторовна", {
+            const response = await fetch(`${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`, {
                 method: 'GET', // Укажите метод GET
                 headers: {
                     "Authorization": `Bearer ${token}`, // Добавляем заголовок с токеном

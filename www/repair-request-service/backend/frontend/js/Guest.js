@@ -16,7 +16,7 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
     };
 
     try {
-        const response = await fetch('http://localhost:8080/api/guest/create', {
+        const response = await fetch(`${window.config.apiUrl}/api/guest/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

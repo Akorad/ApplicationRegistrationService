@@ -1,6 +1,6 @@
 // Функция для отправки данных формы создания заявки
 function createTicket(ticketData) {
-    fetch('http://localhost:8080/api/tickets/create', {
+    fetch(`${window.config.apiUrl}/api/tickets/create`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

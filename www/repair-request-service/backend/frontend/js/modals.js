@@ -1,6 +1,6 @@
 // Открытие модального окна с информацией о заявке
 function openModal(ticketNumber) {
-    fetch(`http://localhost:8080/api/html/tickets/info/${ticketNumber}`, {
+    fetch(`${window.config.apiUrl}/api/html/tickets/info/${ticketNumber}`, {
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
@@ -25,7 +25,7 @@ function openModal(ticketNumber) {
 //Удаление заявки
 async function deleteTicket(ticketNumber) {
     try {
-        const response = await fetch(`http://localhost:8080/api/tickets/delete/${ticketNumber}`, {
+        const response = await fetch(`${window.config.apiUrl}/api/tickets/delete/${ticketNumber}`, {
             method: "DELETE",
             headers: {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -52,7 +52,7 @@ async function deleteTicket(ticketNumber) {
 //обновление для пользователя
 async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber) {
     try {
-        const response = await fetch('http://localhost:8080/api/tickets/userUpdate', {
+        const response = await fetch(`${window.config.apiUrl}/api/tickets/userUpdate`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -93,7 +93,7 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
         supplies
     };
     try {
-        const response = await fetch('http://localhost:8080/api/tickets/update', {
+        const response = await fetch(`${window.config.apiUrl}/api/tickets/update`, {
             method: "PUT", // Используем PUT для обновления
             headers: {
                 'Content-Type': 'application/json',
@@ -204,7 +204,7 @@ function openPdf(ticketNumber) {
     }
 
     // Делаем запрос с передачей токена в заголовке
-    fetch(`http://localhost:8080/api/tickets/print/${ticketNumber}`, {
+    fetch(`${window.config.apiUrl}/api/tickets/print/${ticketNumber}`, {
         method: 'GET',
         headers: {
             'Authorization': `Bearer ${token}`

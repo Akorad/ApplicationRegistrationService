@@ -1,7 +1,7 @@
 // Функция для получения списка заявок
 async function fetchTickets(page = 0, size = 10, filters = {}) {
     const query = new URLSearchParams({page, size, ...filters}).toString();
-    const response = await fetch(`http://localhost:8080/api/tickets/summary?${query}`, {
+    const response = await fetch(`${window.config.apiUrl}/api/tickets/summary?${query}`, {
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
         }

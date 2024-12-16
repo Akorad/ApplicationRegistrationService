@@ -1,3 +1,4 @@
+
 document.addEventListener("DOMContentLoaded", async function () {
     const authContainer = document.getElementById("modalContainerAuth");
 
@@ -8,7 +9,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Загружаем модальное окно авторизации
     await loadAuthModal();
-    checkAuthStatus(); // Проверка статуса авторизации при загрузке страницы
+    setTimeout(checkAuthStatus , 100);
+    //checkAuthStatus(); // Проверка статуса авторизации при загрузке страницы
 });
 
 // Загрузка модального окна авторизации
@@ -57,7 +59,7 @@ async function handleLogin(event) {
     };
 
     try {
-        const response = await fetch('http://localhost:8080/auth/sign-in', {
+        const response = await fetch(`${window.config.apiUrl}/auth/sign-in`,  {
             method: 'POST',
             body: JSON.stringify(requestData),
             headers: { 'Content-Type': 'application/json' }

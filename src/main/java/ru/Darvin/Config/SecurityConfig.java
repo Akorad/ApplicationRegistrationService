@@ -15,11 +15,14 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import ru.Darvin.Service.AuthenticationFilter;
 import ru.Darvin.Service.UserService;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -29,7 +32,7 @@ public class SecurityConfig {
 
     private final AuthenticationFilter authenticationFilter;
     private final UserService userService;
-    private final ClientRegistrationRepository clientRegistrationRepository; // Внедрение ClientRegistrationRepository через поле
+    private final ClientRegistrationRepository clientRegistrationRepository;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -52,6 +55,10 @@ public class SecurityConfig {
                                 "/api/html/tickets/info/**", "/api/tickets/print/**").authenticated()
                         .anyRequest().hasAuthority("ADMIN")
                 )
+                .exceptionHandling(exceptionHandling -> exceptionHandling
+                        .authenticationEntryPoint(customAuthenticationEntryPoint()) // обрабатывает неаутентифицированные запросы
+                        .accessDeniedHandler(customAccessDeniedHandler()) // обрабатывает запросы, где доступ запрещен
+                )
                 .oauth2Login(oauth -> oauth
                         .loginPage("/login")
                         .defaultSuccessUrl("/", true)
@@ -71,6 +78,26 @@ public class SecurityConfig {
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
+    }
+
+    /**
+     * Обработчик для неаутентифицированных запросов (401 Unauthorized)
+     */
+    @Bean
+    public AuthenticationEntryPoint customAuthenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+        };
+    }
+
+    /**
+     * Обработчик для запретов доступа (403 Forbidden)
+     */
+    @Bean
+    public AccessDeniedHandler customAccessDeniedHandler() {
+        return (request, response, accessDeniedException) -> {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Forbidden");
+        };
     }
 
     @Bean

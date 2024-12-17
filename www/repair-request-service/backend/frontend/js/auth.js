@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Загружаем модальное окно авторизации
     await loadAuthModal();
-    setTimeout(checkAuthStatus , 100);
+    setTimeout(checkAuthStatus , 200);
     //checkAuthStatus(); // Проверка статуса авторизации при загрузке страницы
 });
 
@@ -75,7 +75,7 @@ async function handleLogin(event) {
                 localStorage.setItem('userRole', parsedToken.role);
                 showAlert('Вход выполнен успешно!');
                 $('#loginModal').modal('hide');
-                checkAuthStatus(); // Обновление состояния кнопок
+                setTimeout(checkAuthStatus , 200); // Обновление состояния кнопок
                 location.reload();
             } else {
                 console.error("Роль не найдена");
@@ -94,7 +94,7 @@ function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("userRole");
     showAlert("Выход выполнен");
-    checkAuthStatus(); // Обновление состояния кнопок
+    setTimeout(checkAuthStatus , 200);// Обновление состояния кнопок
     location.reload();
 }
 

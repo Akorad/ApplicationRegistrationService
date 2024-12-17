@@ -35,27 +35,34 @@ document.addEventListener("DOMContentLoaded", async function () {
         data.forEach(material => {
             const row = document.createElement("tr");
 
+            // Пути к изображению
+            const imageUrl = `${window.config.apiUrl}/images/${material.id}.jpg`;
+            const defaultImageUrl = `${window.config.apiUrl}/images/default-material.jpg`;
+
+            // Используем обработчик ошибок onerror для переключения на дефолтное изображение
             row.innerHTML = `
-        <td class="image-cell" style="position: relative;">
-            <img src="${window.config.apiUrl}/images/${material.id}.jpg" 
-                 alt="${material.name}" 
-                 class="material-image"
-                 onclick="openImageModal('${material.id}')"
-                 onerror="this.onerror=null;this.src='${window.config.apiUrl}/images/default-material.jpg';">
-            <button class="edit-image-btn" onclick="openEditModal('${material.id}')">
-                🖊️
-            </button>
-        </td>
-        <td>${material.name}</td>
-        <td>${material.quantity}</td>
-        <td>
-            <button class="btn btn-info btn-sm me-2" onclick="openRequestsModal('${material.id}')">Заявки</button>
-            <button class="btn btn-success btn-sm" onclick="openIssueModal('${material.id}')">Выдача</button>
-        </td>
+            <td class="image-cell" style="position: relative;">
+                <img src="${imageUrl}" 
+                     alt="${material.name}" 
+                     class="material-image"
+                     onclick="openImageModal('${material.id}')"
+                     onerror="this.onerror=null;this.src='${defaultImageUrl}';">
+                <button class="edit-image-btn" onclick="openEditModal('${material.id}')">
+                    🖊️
+                </button>
+            </td>
+            <td>${material.name}</td>
+            <td>${material.quantity}</td>
+            <td>
+                <button class="btn btn-info btn-sm me-2" onclick="openRequestsModal('${material.id}')">Заявки</button>
+                <button class="btn btn-success btn-sm" onclick="openIssueModal('${material.id}')">Выдача</button>
+            </td>
         `;
             materialsTableBody.appendChild(row);
         });
     }
+
+
 
     // Фильтрация материалов
     searchInput.addEventListener("input", () => {

@@ -48,6 +48,7 @@ public class SecurityConfig {
                 }))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/images/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        .requestMatchers("/guest/**").permitAll()
                         .requestMatchers("/api/guest/**", "/guest/**").hasAuthority("GUEST")
                         .requestMatchers("/api/equipments/**", "/api/tickets/update", "/api/admin/test-email", "/supplies/**").hasAuthority("ADMIN")
                         .requestMatchers("/api/tickets/userUpdate", "/api/tickets/create", "/api/tickets/summary",

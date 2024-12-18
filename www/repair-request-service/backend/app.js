@@ -20,8 +20,8 @@ const openIDConfig = {
     userInfoURL: 'https://lk.ulstu.ru/?q=oidc/userinfo',
     clientID: '89a015d24a66b01a77fe30059820593e177c43b32c9c3c4ea711eb5610639347',
     clientSecret: '1c1d2b50e647288824223edfbf0fafd1a003c063c5c7191b8b7ac42fb7ca714f',
-    callbackURL: 'http://repair.laop.ulstu.ru/',
-    scope: '',
+    callbackURL: 'https://repair.laop.ulstu.ru/auth/callback', // 📌 Исправленный URL
+    scope: 'openid email profile', // 📌 Рекомендуется добавить scope для получения данных профиля
     passReqToCallback: true
 };
 
@@ -77,15 +77,15 @@ app.get('/auth/callback', passport.authenticate('oidc', { failureRedirect: '/' }
 
 // Логаут и редирект на страницу входа
 app.get('/auth/logout', (req, res) => {
-    req.logout(err => {
+    req.logout({ keepSessionInfo: false }, (err) => {
         if (err) { return next(err); }
-        res.redirect('/auth/login');
+        res.redirect('/'); // Перенаправляем на главную после логаута
     });
 });
 
 // 📌 Маршрут для страницы гостя (без OpenID)
 app.get('/guest', (req, res) => {
-    res.sendFile(path.join(__dirname, 'frontend', 'html','guest.html'));
+    res.sendFile(path.join(__dirname, 'frontend', 'html', 'guest.html'));
 });
 
 // 📌 Промежуточный обработчик для проверки авторизации (применяется ко всем страницам, кроме /guest)
@@ -93,7 +93,7 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/guest')) return next(); // Пропустить проверку для /guest
     if (req.isAuthenticated()) return next(); // Если пользователь аутентифицирован, продолжить
     req.session.returnTo = req.originalUrl; // Сохранить исходный URL для редиректа после логина
-    res.redirect('/'); // Перенаправляем на главную страницу
+    res.redirect('/auth/openid'); // 📌 Перенаправляем на страницу авторизации OpenID
 });
 
 // 📌 Главная страница
@@ -111,6 +111,12 @@ app.get('/profile', (req, res) => {
     if (!req.isAuthenticated()) return res.redirect('/auth/login');
     res.send(`Профиль пользователя: ${JSON.stringify(req.user)}`);
 });
+
+// 📌 API для проверки статуса авторизации
+app.get('/auth/status', (req, res) => {
+    res.json({ isAuthenticated: req.isAuthenticated() });
+});
+
 
 // Запуск сервера
 app.listen(PORT, () => {

@@ -99,39 +99,33 @@ function handleLogout() {
 }
 
 // Проверка статуса авторизации
-function checkAuthStatus() {
-    const token = localStorage.getItem("token");
+// 📌 Удаляем использование localStorage и JWT на клиенте для OpenID
+async function checkAuthStatus() {
     const loginButton = document.getElementById("loginButton");
     const logoutButton = document.getElementById("logoutButton");
 
     if (!loginButton || !logoutButton) {
-        setTimeout(checkAuthStatus, 50); // Повторная попытка, если элементы еще не загружены
+        setTimeout(checkAuthStatus, 50);
         return;
     }
 
-    if (token) {
-        const parsedToken = parseJwt(token);
-
-        // Проверяем срок действия токена
-        const currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
-        if (parsedToken?.exp && parsedToken.exp < currentTime) {
-            console.warn("Токен истек.");
-            handleLogout(); // Удаляем токен и обновляем интерфейс
-            return;
+    try {
+        const response = await fetch('/auth/status'); // 📌 Делаем запрос на сервер
+        if (response.ok) {
+            const data = await response.json();
+            if (data.isAuthenticated) {
+                loginButton.style.display = "none";
+                logoutButton.style.display = "inline-block";
+            } else {
+                loginButton.style.display = "inline-block";
+                logoutButton.style.display = "none";
+            }
         }
-
-        // Если токен валиден
-        if (parsedToken?.role) {
-            loginButton.style.display = "none";
-            logoutButton.style.display = "inline-block";
-        } else {
-            handleLogout(); // Удаляем токен и обновляем интерфейс
-        }
-    } else {
-        loginButton.style.display = "inline-block";
-        logoutButton.style.display = "none";
+    } catch (error) {
+        console.error("Ошибка проверки статуса авторизации", error);
     }
 }
+
 
 // Функция декодирования токена JWT
 function parseJwt(token) {

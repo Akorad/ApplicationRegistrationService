@@ -69,7 +69,7 @@ app.get('/auth/login', (req, res) => {
 
 app.get('/auth/openid', passport.authenticate('oidc'));
 
-app.get('/auth/callback', passport.authenticate('oidc', { failureRedirect: '/guest' }), (req, res) => {
+app.get('/auth/callback', passport.authenticate('oidc', { failureRedirect: '/' }), (req, res) => {
     const returnTo = req.session.returnTo || '/';
     delete req.session.returnTo;
     res.redirect(returnTo);
@@ -93,7 +93,7 @@ app.use((req, res, next) => {
     if (req.path.startsWith('/guest')) return next(); // Пропустить проверку для /guest
     if (req.isAuthenticated()) return next(); // Если пользователь аутентифицирован, продолжить
     req.session.returnTo = req.originalUrl; // Сохранить исходный URL для редиректа после логина
-    res.redirect('/auth/login');
+    res.redirect('/'); // Перенаправляем на главную страницу
 });
 
 // 📌 Главная страница
@@ -118,7 +118,7 @@ app.listen(PORT, () => {
 });
 
 
-//без openId
+// //без openId
 // const express = require('express');
 // const path = require('path');
 //
@@ -151,5 +151,5 @@ app.listen(PORT, () => {
 //
 // // Запуск сервера
 // app.listen(PORT, () => {
-//     console.log("Сервер запущен на http://localhost:${PORT}");
+//     console.log("Сервер запущен на http://localhost:3000");
 // });

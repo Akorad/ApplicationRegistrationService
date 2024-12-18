@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         // Отправляем запрос на сервер
-        fetch(`http://localhost:8080/api/equipments/${inventoryNumber}`, {
+        fetch(`${window.config.apiUrl}/api/equipments/${inventoryNumber}`, {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${token}`

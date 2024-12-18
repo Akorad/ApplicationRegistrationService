@@ -7,6 +7,10 @@ target/
 node_modules/
 images/
 
+departments.json
+inventoryNumbers.json
+stock.json
+
 ### STS ###
 .apt_generated
 .classpath

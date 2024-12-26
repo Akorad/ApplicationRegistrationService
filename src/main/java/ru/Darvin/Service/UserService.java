@@ -5,8 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -23,7 +25,7 @@ import ru.Darvin.Entity.User;
 import ru.Darvin.Repository.UserRepository;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -149,5 +151,23 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
      */
     public UserDetailsService userDetailsService() {
         return this::getByUsername;
+    }
+
+    public UserDetails findOrCreateUser(String username, Map<String, Object> userInfo) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+
+        if (user == null) {
+            user = new User();
+            user.setUsername(username);
+            user.setPassword(new BCryptPasswordEncoder().encode("default_password"));
+            user.setRole(Role.USER);
+            user.setEmail((String) userInfo.get("email"));
+            user.setFirstName((String) userInfo.get("given_name"));
+            user.setLastName((String) userInfo.get("family_name"));
+            userRepository.save(user);
+        }
+
+        return user;
     }
 }

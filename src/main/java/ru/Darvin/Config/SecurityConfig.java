@@ -53,13 +53,9 @@ public class SecurityConfig {
                         .anyRequest().hasAuthority("ADMIN")
                 )
                 .oauth2Login(oauth -> oauth
-                        .loginPage("/login")
                         .defaultSuccessUrl("/", true)
-                        .authorizationEndpoint(auth -> auth
-                                .authorizationRequestResolver(customOAuth2AuthorizationRequestResolver())
-                        )
-                        .userInfoEndpoint(userInfo -> userInfo.oidcUserService(oidcUserService()))
                 )
+
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler())

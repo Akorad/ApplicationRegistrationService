@@ -53,9 +53,11 @@ public class SecurityConfig {
                         .anyRequest().hasAuthority("ADMIN")
                 )
                 .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(config -> config
+                                .authorizationRequestResolver(customAuthorizationRequestResolver())
+                        )
                         .defaultSuccessUrl("/", true)
                 )
-
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler())
@@ -101,7 +103,9 @@ public class SecurityConfig {
         };
     }
 
-    private OAuth2AuthorizationRequestResolver customOAuth2AuthorizationRequestResolver() {
+    @Bean
+    public OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver() {
         return new CustomAuthorizationRequestResolver(clientRegistrationRepository);
     }
+
 }

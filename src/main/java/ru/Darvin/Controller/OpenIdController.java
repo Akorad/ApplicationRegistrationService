@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 @RestController
-@RequestMapping("/openid")
+@RequestMapping("/wp-admin")
 public class OpenIdController {
 
     @Value("${openid.client-id}")
@@ -23,7 +23,7 @@ public class OpenIdController {
     @Value("${openid.redirect-uri}")
     private String redirectUri;
 
-    @PostMapping("/callback")
+    @PostMapping("/admin-ajax.php")
     public ResponseEntity<?> handleOpenIdRedirect(@RequestParam(value = "action", required = false) String action,
                                                   @RequestParam(value = "code", required = false) String code,
                                                   @RequestParam(value = "state", required = false) String state) {

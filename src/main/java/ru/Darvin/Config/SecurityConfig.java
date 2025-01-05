@@ -40,7 +40,7 @@ public class SecurityConfig {
                     return corsConfiguration;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/images/**","/openid/callback").permitAll()
+                        .requestMatchers("/auth/**", "/images/**","/wp-admin/**").permitAll()
                         .requestMatchers("/api/guest/**").hasAuthority("GUEST")
                         .anyRequest().authenticated()
                 )

@@ -23,7 +23,7 @@ public class OpenIdController {
     @Value("${openid.redirect-uri}")
     private String redirectUri;
 
-    @PostMapping("/admin-ajax.php")
+    @GetMapping("/admin-ajax.php")
     public ResponseEntity<?> handleOpenIdRedirect(@RequestParam(value = "action", required = false) String action,
                                                   @RequestParam(value = "code", required = false) String code,
                                                   @RequestParam(value = "state", required = false) String state) {

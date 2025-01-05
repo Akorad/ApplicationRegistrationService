@@ -22,7 +22,7 @@ public class AuthController {
     @Value("${openid.client-secret}")
     private String clientSecret;
 
-    @Value("${openid.token-url}")
+    @Value("${openid.token-endpoint}")
     private String tokenEndpoint;
 
     @Value("${openid.redirect-uri}")

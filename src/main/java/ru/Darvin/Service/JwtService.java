@@ -60,10 +60,18 @@ public class JwtService {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(getSigningKey()).build().parseClaimsJws(token)
-                .getBody();
-    }
+//    private Claims extractAllClaims(String token) {
+//        return Jwts.parser().setSigningKey(getSigningKey()).build().parseClaimsJws(token)
+//                .getBody();
+//    }
+private Claims extractAllClaims(String token) {
+    return Jwts.parserBuilder()
+            .setSigningKey(getSigningKey())
+            .build()
+            .parseClaimsJws(token)
+            .getBody();
+}
+
 
     private Key getSigningKey() {
         byte[] keyBytes = Decoders.BASE64.decode(jwtSigningKey);

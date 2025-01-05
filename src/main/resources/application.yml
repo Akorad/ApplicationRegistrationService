@@ -55,7 +55,8 @@ openid:
   client-secret: 1c1d2b50e647288824223edfbf0fafd1a003c063c5c7191b8b7ac42fb7ca714f
   scope: openid
   login-endpoint: https://lk.ulstu.ru/?q=oidc/auth
-  token-endpoint: https://lk.ulstu.ru/?q=oidc/token
+  token-url: https://lk.ulstu.ru/?q=oidc/token
   end-session-url: https://lk.ulstu.ru/?q=auth/logout
   redirect-uri: http://repair.laop.ulstu.ru/wp-admin/admin-ajax.php?action=openid-connect-authorize
+
 

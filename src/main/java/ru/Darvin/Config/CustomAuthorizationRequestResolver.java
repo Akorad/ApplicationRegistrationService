@@ -32,7 +32,7 @@ public class CustomAuthorizationRequestResolver implements OAuth2AuthorizationRe
             return null;
         }
         return OAuth2AuthorizationRequest.from(request)
-                .authorizationRequestUri("https://lk.ulstu.ru/?q=oidc/auth")
+                .authorizationRequestUri("http://repair.laop.ulstu.ru/wp-admin/admin-ajax.php?action=openid-connect-authorize")
                 .build();
     }
 }

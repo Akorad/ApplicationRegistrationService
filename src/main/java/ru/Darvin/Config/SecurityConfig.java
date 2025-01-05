@@ -11,9 +11,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
@@ -29,7 +26,6 @@ public class SecurityConfig {
 
     private final AuthenticationFilter authenticationFilter;
     private final UserService userService;
-    private final ClientRegistrationRepository clientRegistrationRepository; // Внедрение ClientRegistrationRepository через поле
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -44,38 +40,19 @@ public class SecurityConfig {
                     return corsConfiguration;
                 }))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/images/**", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
-                        .requestMatchers("/api/guest/**", "/guest/**").hasAuthority("GUEST")
-                        .requestMatchers("/api/equipments/**", "/api/tickets/update", "/api/admin/test-email", "/supplies/**").hasAuthority("ADMIN")
-                        .requestMatchers("/api/tickets/userUpdate", "/api/tickets/create", "/api/tickets/summary",
-                                "/api/tickets/info/**", "/api/supplies/mol/**", "/api/tickets/delete/**",
-                                "/api/html/tickets/info/**", "/api/tickets/print/**").authenticated()
-                        .anyRequest().hasAuthority("ADMIN")
-                )
-                .oauth2Login(oauth -> oauth
-                        .authorizationEndpoint(config -> config
-                                .authorizationRequestResolver(customAuthorizationRequestResolver())
-                        )
-                        .defaultSuccessUrl("/", true)
+                        .requestMatchers("/auth/**", "/images/**").permitAll()
+                        .requestMatchers("/api/guest/**").hasAuthority("GUEST")
+                        .anyRequest().authenticated()
                 )
                 .logout(logout -> logout
-                        .logoutUrl("/logout")
                         .logoutSuccessHandler(logoutSuccessHandler())
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .authenticationProvider(authenticationProvider())
                 .addFilterBefore(authenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
-    }
-
-    @Bean
-    public OidcUserService oidcUserService() {
-        OidcUserService oidcUserService = new OidcUserService();
-        oidcUserService.setOauth2UserService(userService);
-        return oidcUserService;
     }
 
     @Bean
@@ -98,14 +75,6 @@ public class SecurityConfig {
 
     @Bean
     public LogoutSuccessHandler logoutSuccessHandler() {
-        return (request, response, authentication) -> {
-            response.sendRedirect("https://lk.ulstu.ru/?q=auth/logout");
-        };
+        return (request, response, authentication) -> response.sendRedirect("https://lk.ulstu.ru/?q=auth/logout");
     }
-
-    @Bean
-    public OAuth2AuthorizationRequestResolver customAuthorizationRequestResolver() {
-        return new CustomAuthorizationRequestResolver(clientRegistrationRepository);
-    }
-
 }

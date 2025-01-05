@@ -66,7 +66,7 @@ public class OpenIdController {
                 return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
             }
         } catch (Exception e) {
-            System.out.println("Ошибка при обращении к OpenID Token Endpoint" + e);
+            System.out.println("Ошибка при обращении к OpenID Token Endpoint: " + e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка получения токена");
         }
     }

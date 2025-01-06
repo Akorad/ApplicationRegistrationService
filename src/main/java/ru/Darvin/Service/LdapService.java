@@ -30,54 +30,64 @@ public class LdapService {
     }
 
     public LdapUserDetails getUserDetails(String username) {
-        // Логирование начала запроса
         System.out.println("Запрос LDAP для пользователя: " + username);
 
-        // Тест подключения к LDAP серверу
         if (!testLdapConnection()) {
             System.out.println("Не удалось подключиться к LDAP серверу.");
-            return null; // Возвращаем null, если не удалось подключиться
+            return null;
         }
 
-        // Фильтр для поиска пользователя по имени
         String filter = "(uid=" + username + ")";
 
         try {
-            // Указываем полный DN для поиска в подкаталоге ou=accounts
             String searchBase = "ou=accounts," + ldapBase;
 
-            // Логируем перед выполнением запроса
             System.out.println("Поиск пользователя с фильтром: " + filter);
 
-            // Запрос в LDAP
-            List<LdapUserDetails> result = ldapTemplate.search(
+            // Запрос LDAP и получение сырых атрибутов
+            var results = ldapTemplate.search(
                     searchBase,
                     filter,
-                    (AttributesMapper<LdapUserDetails>) attributes -> mapToUserDetails(attributes, username)
+                    (AttributesMapper<Attributes>) attributes -> attributes
             );
 
-            // Проверка на наличие результатов
-            if (result.isEmpty()) {
+            if (results.isEmpty()) {
                 System.out.println("Пользователь " + username + " не найден в LDAP.");
                 return null;
             }
 
-            // Логируем количество найденных результатов
-            System.out.println("Найдено пользователей: " + result.size());
+            System.out.println("Найдено пользователей: " + results.size());
 
-            // Печать атрибутов первого результата для отладки
-            LdapUserDetails userDetails = result.get(0);
-            System.out.println("Данные пользователя: " + userDetails);
+            // Логируем атрибуты всех записей
+            results.forEach(attributes -> {
+                try {
+                    System.out.println("Атрибуты записи:");
+                    var attributeNames = attributes.getAll();
+                    while (attributeNames.hasMore()) {
+                        var attribute = attributeNames.next();
+                        System.out.println(attribute);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Ошибка при чтении атрибутов: " + e.getMessage());
+                }
+            });
 
-            // Возвращаем первый результат
+            // Применяем маппинг к первому результату
+            var firstResult = results.get(0);
+            LdapUserDetails userDetails = mapToUserDetails(firstResult, username);
+
+            if (userDetails != null) {
+                System.out.println("Данные пользователя " + username + ": " + userDetails);
+            }
+
             return userDetails;
 
         } catch (Exception e) {
-            // Логируем ошибку
             System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
-            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: "+ username +" Ошибка: "+ e.getMessage());
+            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username + " Ошибка: " + e.getMessage());
         }
     }
+
 
     private boolean testLdapConnection() {
         try {

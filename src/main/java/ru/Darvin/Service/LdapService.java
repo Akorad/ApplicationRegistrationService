@@ -39,7 +39,7 @@ public class LdapService {
         }
 
         // Фильтр для поиска пользователя по имени
-        String filter = "(&(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob))(uid=" + username + "))";
+        String filter = "(uid=" + username + ")";
 
         try {
             // Указываем полный DN для поиска в подкаталоге ou=accounts
@@ -69,7 +69,7 @@ public class LdapService {
         } catch (Exception e) {
             // Логируем ошибку
             System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
-            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: "+ username +"Ошибка: "+ e.getMessage());
+            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: "+ username +" Ошибка: "+ e.getMessage());
         }
     }
 

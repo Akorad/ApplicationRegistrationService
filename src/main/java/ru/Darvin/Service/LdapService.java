@@ -19,32 +19,23 @@ public class LdapService {
     @Value("${spring.ldap.base}")
     private String ldapBase;
 
+    @Value("${spring.ldap.urls}")
+    private String ldapUrl;
+
     private static final Logger logger = Logger.getLogger(LdapService.class.getName());
 
     public LdapService(LdapTemplate ldapTemplate) {
         this.ldapTemplate = ldapTemplate;
     }
 
-    // Метод для тестирования подключения к LDAP-серверу
-    private boolean testLdapConnection() {
-        try {
-            // Выполняем простой запрос, чтобы проверить подключение к LDAP
-            ldapTemplate.search(ldapBase, "(objectClass=person)", (AttributesMapper<String>) attributes -> "Test");
-            System.out.println("Подключение к LDAP успешно!");
-            return true;  // Если запрос прошел без ошибок, подключение установлено
-        } catch (Exception e) {
-            System.out.println("Ошибка подключения к LDAP: " + e.getMessage());
-            return false;  // Если ошибка, возвращаем false
-        }
-    }
-
     public LdapUserDetails getUserDetails(String username) {
         // Логирование начала запроса
         System.out.println("Запрос LDAP для пользователя: " + username);
 
-        // Сначала тестируем подключение к LDAP
+        // Тест подключения к LDAP серверу
         if (!testLdapConnection()) {
-            throw new RuntimeException("Не удалось подключиться к LDAP серверу.");
+            System.out.println("Не удалось подключиться к LDAP серверу.");
+            return null; // Возвращаем null, если не удалось подключиться
         }
 
         // Фильтр для поиска пользователя по имени
@@ -76,6 +67,18 @@ public class LdapService {
             // Логируем ошибку
             System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
             throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username, e);
+        }
+    }
+
+    private boolean testLdapConnection() {
+        try {
+            // Пробуем выполнить запрос к LDAP серверу для проверки соединения
+            ldapTemplate.search("", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
+            System.out.println("LDAP сервер доступен.");
+            return true;
+        } catch (Exception e) {
+            System.out.println("Ошибка подключения к LDAP серверу: " + e.getMessage());
+            return false;
         }
     }
 

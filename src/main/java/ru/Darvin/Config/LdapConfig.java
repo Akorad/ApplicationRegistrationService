@@ -12,8 +12,10 @@ public class LdapConfig {
     public LdapContextSource ldapContextSource() {
         LdapContextSource contextSource = new LdapContextSource();
         contextSource.setUrl("ldap://lk.ustu:389");
-        contextSource.setUserDn("cn=repair,ou=services,dc=ams,dc=ulstu,dc=ru");
-        contextSource.setPassword("J*t9L_6heQ86M+a5%");
+        contextSource.setBase("dc=ams,dc=ulstu,dc=ru");
+        contextSource.setUserDn("cn=repair,ou=services,dc=ams,dc=ulstu,dc=ru"); // Здесь указывается DN пользователя
+        contextSource.setPassword("J*t9L_6heQ86M+a5%"); // Здесь указывается пароль
+        contextSource.setPooled(false);
         return contextSource;
     }
 

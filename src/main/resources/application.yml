@@ -4,6 +4,11 @@ spring:
     url: jdbc:postgresql://localhost:5432/application
     username: root
     password: 1234
+  ldap:
+    base: "dc=ams,dc=ulstu,dc=ru" # Базовый DN для поиска
+    urls: "ldap://lk.ustu:389" # URL LDAP-сервера
+    username: "cn=repair,ou=services,dc=ams,dc=ulstu,dc=ru" # Учетная запись администратора
+    password: "J*t9L_6heQ86M+a5%" # Пароль администратора
   jpa:
     show-sql: true
     hibernate:

@@ -1,11 +1,13 @@
 package ru.Darvin.Controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
+import ru.Darvin.Service.LdapService;
+import ru.Darvin.Service.OpenIdTokenService;
+import ru.Darvin.Service.UserService;
+import ru.Darvin.DTO.LdapUserDetails;
 
 @RestController
 @RequestMapping("/wp-admin")
@@ -23,51 +25,47 @@ public class OpenIdController {
     @Value("${openid.redirect-uri}")
     private String redirectUri;
 
+    @Autowired
+    private OpenIdTokenService openIdTokenService;
+
+    @Autowired
+    private LdapService ldapService;
+
+    @Autowired
+    private UserService userService;
+
     @GetMapping("/admin-ajax.php")
     public ResponseEntity<?> handleOpenIdRedirect(@RequestParam(value = "action", required = false) String action,
                                                   @RequestParam(value = "code", required = false) String code,
                                                   @RequestParam(value = "state", required = false) String state) {
-        System.out.println("Получен редирект от OpenID: code={" + code + "}, state={"+ state+"}");
-
-        // Проверка параметра action
         if (action == null || !action.equals("openid-connect-authorize")) {
-            System.out.println("Неверный параметр action: {" + action+"}");
             return ResponseEntity.badRequest().body("Неверный параметр action");
         }
-        // Проверка обязательных параметров code и state
+
         if (code == null || state == null) {
-            System.out.println("Отсутствуют параметры code или state");
             return ResponseEntity.badRequest().body("Отсутствуют параметры code или state");
         }
-        // Создаем запрос для получения токена
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-
-        MultiValueMap<String, String> body = new LinkedMultiValueMap<>();
-        body.add("grant_type", "authorization_code");
-        body.add("code", code);
-        body.add("redirect_uri", redirectUri);
-        body.add("client_id", clientId);
-        body.add("client_secret", clientSecret);
-
-        HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(tokenEndpoint, request, String.class);
-            System.out.println("Ответ от OpenID: {" + response.getBody() + "}");
+            String openIdResponse = openIdTokenService.getToken(code, clientId, clientSecret, redirectUri, tokenEndpoint);
+            String username = openIdTokenService.extractUsername(openIdResponse);
 
-            // Проверяем статус ответа
-            if (response.getStatusCode() == HttpStatus.OK) {
-                // Возвращаем токен на фронт
-                return ResponseEntity.ok(response.getBody());
-            } else {
-                System.out.println("Ошибка получения токена: {" + response.getBody() + "}");
-                return ResponseEntity.status(response.getStatusCode()).body(response.getBody());
+            if (username == null) {
+                return ResponseEntity.badRequest().body("Не удалось извлечь имя пользователя из токена.");
             }
+
+            // Получение данных из LDAP
+            LdapUserDetails userDetails = ldapService.getUserDetails(username);
+            if (userDetails == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден в LDAP.");
+            }
+
+            // Создание или обновление пользователя
+            userService.createOrUpdateUser(userDetails);
+
+            return ResponseEntity.ok("Пользователь успешно обработан: " + username + "Ответ от open id: " + openIdResponse);
         } catch (Exception e) {
-            System.out.println("Ошибка при обращении к OpenID Token Endpoint: " + e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка получения токена");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка обработки OpenID: " + e.getMessage());
         }
     }
 }

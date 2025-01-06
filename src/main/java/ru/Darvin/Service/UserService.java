@@ -17,6 +17,7 @@ import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
+import ru.Darvin.DTO.LdapUserDetails;
 import ru.Darvin.DTO.Mapper.UserMapperImpl;
 import ru.Darvin.DTO.UserInfoDTO;
 import ru.Darvin.DTO.UserUpdateDto;
@@ -26,7 +27,10 @@ import ru.Darvin.Repository.UserRepository;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.Darvin.Entity.Role.USER;
 
 @Service
 @RequiredArgsConstructor
@@ -138,7 +142,7 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
                     .email(oidcUser.getAttribute("email"))
                     .firstName(oidcUser.getAttribute("given_name"))
                     .lastName(oidcUser.getAttribute("family_name"))
-                    .role(Role.USER)
+                    .role(USER)
                     .build();
             return userRepository.save(newUser);
         });
@@ -161,7 +165,7 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
             user = new User();
             user.setUsername(username);
             user.setPassword(new BCryptPasswordEncoder().encode("default_password"));
-            user.setRole(Role.USER);
+            user.setRole(USER);
             user.setEmail((String) userInfo.get("email"));
             user.setFirstName((String) userInfo.get("given_name"));
             user.setLastName((String) userInfo.get("family_name"));
@@ -169,5 +173,33 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
         }
 
         return user;
+    }
+
+    public void createOrUpdateUser(LdapUserDetails ldapUserDetails) {
+        Optional<User> optionalUser = userRepository.findByUsername(ldapUserDetails.getUsername());
+
+        User user;
+        if (optionalUser.isPresent()) {
+            // Если пользователь существует, обновляем его данные
+            user = optionalUser.get();
+            user.setFirstName(ldapUserDetails.getFirstName());
+            user.setLastName(ldapUserDetails.getLastName());
+            user.setEmail(ldapUserDetails.getEmail());
+            user.setDepartment(ldapUserDetails.getDepartment());
+            user.setPhoneNumber(ldapUserDetails.getPhoneNumber());
+        } else {
+            // Если пользователь не найден, создаём нового
+            user = new User();
+            user.setUsername(ldapUserDetails.getUsername());
+            user.setFirstName(ldapUserDetails.getFirstName());
+            user.setLastName(ldapUserDetails.getLastName());
+            user.setEmail(ldapUserDetails.getEmail());
+            user.setDepartment(ldapUserDetails.getDepartment());
+            user.setPhoneNumber(ldapUserDetails.getPhoneNumber());
+            user.setRole(USER); // Роль по умолчанию
+        }
+
+        // Сохраняем пользователя в базе данных
+        userRepository.save(user);
     }
 }

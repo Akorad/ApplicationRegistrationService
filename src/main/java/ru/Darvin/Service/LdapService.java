@@ -47,8 +47,7 @@ public class LdapService {
         }
 
         // Фильтр для поиска пользователя по имени
-//        String filter = "(uid=" + username + ")";
-        String filter = "(objectClass=*)";  // Поиск всех объектов
+        String filter = "(uid=" + username + ")";
 
         try {
             // Указываем полный DN для поиска в подкаталоге ou=accounts

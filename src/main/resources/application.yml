@@ -69,6 +69,8 @@ logging:
     org.springframework.ldap.core: DEBUG
     org.springframework.ldap.core.LdapTemplate: DEBUG
     org.springframework.ldap.core.support.AbstractContextSource: DEBUG
+    org.springframework.ldap.core.support.LdapContextSource: DEBUG
+
 
 
 

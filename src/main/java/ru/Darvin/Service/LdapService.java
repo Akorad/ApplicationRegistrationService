@@ -1,8 +1,10 @@
 package ru.Darvin.Service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.stereotype.Service;
 import ru.Darvin.DTO.LdapUserDetails;
 
@@ -22,6 +24,18 @@ public class LdapService {
         this.ldapTemplate = ldapTemplate;
     }
 
+//    @Bean
+//    public LdapContextSource contextSource() {
+//        LdapContextSource contextSource = new LdapContextSource();
+//        contextSource.setUrl("ldap://lk.ustu:389");
+//        contextSource.setBase("dc=ams,dc=ulstu,dc=ru");
+//        contextSource.setUserDn("cn=repair,ou=services,dc=ams,dc=ulstu,dc=ru"); // Здесь указывается DN пользователя
+//        contextSource.setPassword("J*t9L_6heQ86M+a5%"); // Здесь указывается пароль
+//        contextSource.setPooled(false);  // Отключаем пул для упрощения отладки
+//        return contextSource;
+//    }
+
+
     public LdapUserDetails getUserDetails(String username) {
         // Логирование начала запроса
         System.out.println("Запрос LDAP для пользователя: " + username);
@@ -33,7 +47,8 @@ public class LdapService {
         }
 
         // Фильтр для поиска пользователя по имени
-        String filter = "(uid=" + username + ")";
+//        String filter = "(uid=" + username + ")";
+        String filter = "(objectClass=*)";  // Поиск всех объектов
 
         try {
             // Указываем полный DN для поиска в подкаталоге ou=accounts

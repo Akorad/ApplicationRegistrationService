@@ -86,14 +86,19 @@ public class LdapService {
     }
 
     private LdapUserDetails mapToUserDetails(Attributes attributes, String username) throws NamingException {
-        LdapUserDetails details = new LdapUserDetails();
-        details.setUsername(username);
-        details.setFirstName(getAttribute(attributes, "firstname"));
-        details.setLastName(getAttribute(attributes, "lastname"));
-        details.setEmail(getAttribute(attributes, "mail"));
-        details.setDepartment(getAttribute(attributes, "department"));
-        details.setPhoneNumber(getAttribute(attributes, "displayphone"));
-        return details;
+        try {
+            LdapUserDetails details = new LdapUserDetails();
+            details.setUsername(username);
+            details.setFirstName(getAttribute(attributes, "firstName"));
+            details.setLastName(getAttribute(attributes, "lastName"));
+            details.setEmail(getAttribute(attributes, "displayMail"));
+            details.setDepartment(getAttribute(attributes, "department"));
+            details.setPhoneNumber(getAttribute(attributes, "displayPhone"));
+            return details;
+        } catch (Exception e) {
+            System.out.println("Ошибка mapToUserDetails: " + e.getMessage());
+            return null;
+        }
     }
 
     private String getAttribute(Attributes attributes, String attributeName) throws NamingException {

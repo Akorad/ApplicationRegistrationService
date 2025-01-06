@@ -10,6 +10,7 @@ import ru.Darvin.DTO.LdapUserDetails;
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
 import java.util.logging.Logger;
+import java.util.List;
 
 @Service
 public class LdapService {
@@ -49,21 +50,26 @@ public class LdapService {
             System.out.println("Поиск пользователя с фильтром: " + filter);
 
             // Запрос в LDAP
-            var result = ldapTemplate.search(
+            List<LdapUserDetails> result = ldapTemplate.search(
                     searchBase,
                     filter,
                     (AttributesMapper<LdapUserDetails>) attributes -> mapToUserDetails(attributes, username)
             );
 
+            // Проверка на наличие результатов
             if (result.isEmpty()) {
                 System.out.println("Пользователь " + username + " не найден в LDAP.");
                 return null;
             }
 
-            LdapUserDetails userDetails = result.stream().findFirst().orElse(null);
-            if (userDetails != null) {
-                System.out.println("Данные пользователя " + username + " успешно получены.");
-            }
+            // Логируем количество найденных результатов
+            System.out.println("Найдено пользователей: " + result.size());
+
+            // Печать атрибутов первого результата для отладки
+            LdapUserDetails userDetails = result.get(0);
+            System.out.println("Данные пользователя: " + userDetails);
+
+            // Возвращаем первый результат
             return userDetails;
 
         } catch (Exception e) {
@@ -87,6 +93,8 @@ public class LdapService {
 
     private LdapUserDetails mapToUserDetails(Attributes attributes, String username) throws NamingException {
         try {
+            System.out.println("Маппинг атрибутов для пользователя: " + username);
+
             LdapUserDetails details = new LdapUserDetails();
             details.setUsername(username);
             details.setFirstName(getAttribute(attributes, "firstName"));
@@ -94,6 +102,7 @@ public class LdapService {
             details.setEmail(getAttribute(attributes, "displayMail"));
             details.setDepartment(getAttribute(attributes, "department"));
             details.setPhoneNumber(getAttribute(attributes, "displayPhone"));
+
             return details;
         } catch (Exception e) {
             System.out.println("Ошибка mapToUserDetails: " + e.getMessage());

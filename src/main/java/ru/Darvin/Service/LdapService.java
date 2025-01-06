@@ -25,16 +25,34 @@ public class LdapService {
         this.ldapTemplate = ldapTemplate;
     }
 
+    // Метод для тестирования подключения к LDAP-серверу
+    private boolean testLdapConnection() {
+        try {
+            // Выполняем простой запрос, чтобы проверить подключение к LDAP
+            ldapTemplate.search(ldapBase, "(objectClass=person)", (AttributesMapper<String>) attributes -> "Test");
+            System.out.println("Подключение к LDAP успешно!");
+            return true;  // Если запрос прошел без ошибок, подключение установлено
+        } catch (Exception e) {
+            System.out.println("Ошибка подключения к LDAP: " + e.getMessage());
+            return false;  // Если ошибка, возвращаем false
+        }
+    }
+
     public LdapUserDetails getUserDetails(String username) {
         // Логирование начала запроса
-        logger.info("Запрос LDAP для пользователя: " + username);
+        System.out.println("Запрос LDAP для пользователя: " + username);
+
+        // Сначала тестируем подключение к LDAP
+        if (!testLdapConnection()) {
+            throw new RuntimeException("Не удалось подключиться к LDAP серверу.");
+        }
 
         // Фильтр для поиска пользователя по имени
         EqualsFilter filter = new EqualsFilter("uid", username);
 
         try {
             // Логируем перед выполнением запроса
-            logger.info("Поиск пользователя с фильтром: " + filter.encode());
+            System.out.println("Поиск пользователя с фильтром: " + filter.encode());
 
             // Запрос в LDAP
             var result = ldapTemplate.search(
@@ -44,19 +62,19 @@ public class LdapService {
             );
 
             if (result.isEmpty()) {
-                logger.warning("Пользователь " + username + " не найден в LDAP.");
+                System.out.println("Пользователь " + username + " не найден в LDAP.");
                 return null;
             }
 
             LdapUserDetails userDetails = result.stream().findFirst().orElse(null);
             if (userDetails != null) {
-                logger.info("Данные пользователя " + username + " успешно получены.");
+                System.out.println("Данные пользователя " + username + " успешно получены.");
             }
             return userDetails;
 
         } catch (Exception e) {
             // Логируем ошибку
-            logger.severe("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
+            System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
             throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username, e);
         }
     }
@@ -76,7 +94,7 @@ public class LdapService {
         if (attributes.get(attributeName) != null) {
             return attributes.get(attributeName).get().toString();
         } else {
-            logger.warning("Атрибут " + attributeName + " отсутствует.");
+            System.out.println("Атрибут " + attributeName + " отсутствует.");
             return null;
         }
     }

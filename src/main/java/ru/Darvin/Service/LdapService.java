@@ -9,6 +9,7 @@ import ru.Darvin.DTO.LdapUserDetails;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
+import java.util.logging.Logger;
 
 @Service
 public class LdapService {
@@ -18,21 +19,44 @@ public class LdapService {
     @Value("${spring.ldap.base}")
     private String ldapBase;
 
+    private static final Logger logger = Logger.getLogger(LdapService.class.getName());
+
     public LdapService(LdapTemplate ldapTemplate) {
         this.ldapTemplate = ldapTemplate;
     }
 
     public LdapUserDetails getUserDetails(String username) {
+        // Логирование начала запроса
+        logger.info("Запрос LDAP для пользователя: " + username);
+
         // Фильтр для поиска пользователя по имени
         EqualsFilter filter = new EqualsFilter("uid", username);
 
         try {
-            return ldapTemplate.search(
+            // Логируем перед выполнением запроса
+            logger.info("Поиск пользователя с фильтром: " + filter.encode());
+
+            // Запрос в LDAP
+            var result = ldapTemplate.search(
                     ldapBase,
                     filter.encode(),
                     (AttributesMapper<LdapUserDetails>) attributes -> mapToUserDetails(attributes, username)
-            ).stream().findFirst().orElse(null);
+            );
+
+            if (result.isEmpty()) {
+                logger.warning("Пользователь " + username + " не найден в LDAP.");
+                return null;
+            }
+
+            LdapUserDetails userDetails = result.stream().findFirst().orElse(null);
+            if (userDetails != null) {
+                logger.info("Данные пользователя " + username + " успешно получены.");
+            }
+            return userDetails;
+
         } catch (Exception e) {
+            // Логируем ошибку
+            logger.severe("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
             throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username, e);
         }
     }
@@ -40,16 +64,21 @@ public class LdapService {
     private LdapUserDetails mapToUserDetails(Attributes attributes, String username) throws NamingException {
         LdapUserDetails details = new LdapUserDetails();
         details.setUsername(username);
-        details.setFirstName(getAttribute(attributes, "givenName"));
-        details.setLastName(getAttribute(attributes, "sn"));
+        details.setFirstName(getAttribute(attributes, "firstname"));
+        details.setLastName(getAttribute(attributes, "lastname"));
         details.setEmail(getAttribute(attributes, "mail"));
-        details.setDepartment(getAttribute(attributes, "departmentNumber"));
-        details.setPhoneNumber(getAttribute(attributes, "telephoneNumber"));
+        details.setDepartment(getAttribute(attributes, "department"));
+        details.setPhoneNumber(getAttribute(attributes, "displayphone"));
         return details;
     }
 
     private String getAttribute(Attributes attributes, String attributeName) throws NamingException {
-        return attributes.get(attributeName) != null ? attributes.get(attributeName).get().toString() : null;
+        if (attributes.get(attributeName) != null) {
+            return attributes.get(attributeName).get().toString();
+        } else {
+            logger.warning("Атрибут " + attributeName + " отсутствует.");
+            return null;
+        }
     }
-}
 
+}

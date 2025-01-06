@@ -43,6 +43,8 @@ public class LdapService {
             String searchBase = "ou=accounts," + ldapBase;
 
             System.out.println("Поиск пользователя с фильтром: " + filter);
+            System.out.println("Search Base: " + searchBase);
+
 
             // Запрос LDAP и получение сырых атрибутов
             var results = ldapTemplate.search(
@@ -92,7 +94,7 @@ public class LdapService {
     private boolean testLdapConnection() {
         try {
             // Пробуем выполнить запрос к LDAP серверу для проверки соединения
-            ldapTemplate.search("", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
+            ldapTemplate.search("dc=ams,dc=ulstu,dc=ru", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
             System.out.println("LDAP сервер доступен.");
             return true;
         } catch (Exception e) {

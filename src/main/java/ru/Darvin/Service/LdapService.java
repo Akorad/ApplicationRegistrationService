@@ -42,12 +42,15 @@ public class LdapService {
         EqualsFilter filter = new EqualsFilter("uid", username);
 
         try {
+            // Указываем полный DN для поиска в подкаталоге ou=accounts
+            String searchBase = "ou=accounts," + ldapBase;
+
             // Логируем перед выполнением запроса
             System.out.println("Поиск пользователя с фильтром: " + filter.encode());
 
             // Запрос в LDAP
             var result = ldapTemplate.search(
-                    ldapBase,
+                    searchBase,
                     filter.encode(),
                     (AttributesMapper<LdapUserDetails>) attributes -> mapToUserDetails(attributes, username)
             );
@@ -66,7 +69,7 @@ public class LdapService {
         } catch (Exception e) {
             // Логируем ошибку
             System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
-            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username, e);
+            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: "+ username + e);
         }
     }
 

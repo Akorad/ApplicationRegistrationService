@@ -3,13 +3,12 @@ package ru.Darvin.Service;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.filter.EqualsFilter;
+import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.stereotype.Service;
 import ru.Darvin.DTO.LdapUserDetails;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
-import java.util.logging.Logger;
 import java.util.List;
 
 @Service
@@ -23,7 +22,11 @@ public class LdapService {
     @Value("${spring.ldap.urls}")
     private String ldapUrl;
 
-    private static final Logger logger = Logger.getLogger(LdapService.class.getName());
+    @Value("${spring.ldap.username}")
+    private String ldapUsername;
+
+    @Value("${spring.ldap.password}")
+    private String ldapPassword;
 
     public LdapService(LdapTemplate ldapTemplate) {
         this.ldapTemplate = ldapTemplate;
@@ -45,9 +48,7 @@ public class LdapService {
             System.out.println("Поиск пользователя с фильтром: " + filter);
             System.out.println("Search Base: " + searchBase);
 
-
-            // Запрос LDAP и получение сырых атрибутов
-            var results = ldapTemplate.search(
+            List<Attributes> results = ldapTemplate.search(
                     searchBase,
                     filter,
                     (AttributesMapper<Attributes>) attributes -> attributes
@@ -60,7 +61,6 @@ public class LdapService {
 
             System.out.println("Найдено пользователей: " + results.size());
 
-            // Логируем атрибуты всех записей
             results.forEach(attributes -> {
                 try {
                     System.out.println("Атрибуты записи:");
@@ -74,7 +74,6 @@ public class LdapService {
                 }
             });
 
-            // Применяем маппинг к первому результату
             var firstResult = results.get(0);
             LdapUserDetails userDetails = mapToUserDetails(firstResult, username);
 
@@ -90,11 +89,18 @@ public class LdapService {
         }
     }
 
-
     private boolean testLdapConnection() {
         try {
-            // Пробуем выполнить запрос к LDAP серверу для проверки соединения
-            ldapTemplate.search("dc=ams,dc=ulstu,dc=ru", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
+            LdapContextSource contextSource = new LdapContextSource();
+            contextSource.setUrl(ldapUrl);
+            contextSource.setBase(ldapBase);
+            contextSource.setUserDn(ldapUsername);
+            contextSource.setPassword(ldapPassword);
+            contextSource.afterPropertiesSet();
+
+            LdapTemplate testTemplate = new LdapTemplate(contextSource);
+            testTemplate.search("", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
+
             System.out.println("LDAP сервер доступен.");
             return true;
         } catch (Exception e) {
@@ -130,5 +136,4 @@ public class LdapService {
             return null;
         }
     }
-
 }

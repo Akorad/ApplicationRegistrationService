@@ -99,7 +99,7 @@ public class LdapService {
             contextSource.afterPropertiesSet();
 
             LdapTemplate testTemplate = new LdapTemplate(contextSource);
-            testTemplate.search("", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
+            testTemplate.search("dc=ams,dc=ulstu,dc=ru", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
 
             System.out.println("LDAP сервер доступен.");
             return true;

@@ -37,7 +37,7 @@ public class LdapService {
         }
 
         String searchBase = "ou=accounts," + ldapBase;
-        String filter = "(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob))";
+        String filter = "(&(uid=" + username + ")(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob)))";
         System.out.println("Поиск объектов с фильтром: " + filter);
         System.out.println("Search Base: " + searchBase);
 

@@ -40,9 +40,6 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
     @Autowired
     private final UserRepository userRepository;
 
-    @Autowired
-    private final PasswordEncoder passwordEncoder;
-
     /**
      * Сохранение пользователя.
      */
@@ -203,8 +200,7 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
             user.setRole(USER); // Роль по умолчанию
             // Устанавливаем временный пароль
             String defaultPassword = "default_password"; // Или пустой хэшированный пароль
-            String encodedPassword = passwordEncoder.encode(defaultPassword);
-            user.setPassword(encodedPassword);
+            user.setPassword(defaultPassword);
         }
 
         // Сохраняем пользователя в базе данных

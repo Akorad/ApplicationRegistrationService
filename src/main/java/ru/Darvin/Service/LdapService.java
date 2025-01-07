@@ -10,19 +10,20 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
-import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.List;
 
 @Service
 public class LdapService {
 
     @Value("${spring.ldap.base}")
     private String ldapBase;
+
     @Value("${spring.ldap.urls}")
     private String ldapUrl;
+
     @Value("${spring.ldap.username}")
     private String ldapUserDn;
+
     @Value("${spring.ldap.password}")
     private String ldapPassword;
 
@@ -36,8 +37,8 @@ public class LdapService {
         }
 
         String searchBase = "ou=accounts," + ldapBase;
-        String filter = "(&(uid=" + username + ")(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob)))";
-        System.out.println("Поиск пользователя с фильтром: " + filter);
+        String filter = "(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob))";
+        System.out.println("Поиск объектов с фильтром: " + filter);
         System.out.println("Search Base: " + searchBase);
 
         try {
@@ -45,55 +46,44 @@ public class LdapService {
             searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
             NamingEnumeration<SearchResult> results = context.search(searchBase, filter, searchControls);
-
-            if (!results.hasMore()) {
-                System.out.println("Пользователь " + username + " не найден в LDAP.");
-                return null;
-            }
-
-            List<String> departments = new ArrayList<>();
-            String firstName = null, lastName = null, email = null, phoneNumber = null;
+            StringBuilder departments = new StringBuilder();
+            LdapUserDetails userDetails = new LdapUserDetails();
 
             while (results.hasMore()) {
                 SearchResult searchResult = results.next();
                 Attributes attributes = searchResult.getAttributes();
 
-                if (attributes.get("firstName") != null) {
-                    firstName = getAttribute(attributes, "firstName");
-                }
-                if (attributes.get("lastName") != null) {
-                    lastName = getAttribute(attributes, "lastName");
-                }
-                if (attributes.get("displayMail") != null) {
-                    email = getAttribute(attributes, "displayMail");
-                }
-                if (attributes.get("displayPhone") != null) {
-                    phoneNumber = getAttribute(attributes, "displayPhone");
-                }
-                if (attributes.get("department") != null) {
-                    NamingEnumeration<?> departmentsEnum = attributes.get("department").getAll();
-                    while (departmentsEnum.hasMore()) {
-                        departments.add(departmentsEnum.next().toString());
+                System.out.println("Атрибуты объекта: " + attributes);
+
+                Attribute objectClass = attributes.get("objectClass");
+                if (objectClass != null && objectClass.contains("ulstuJob")) {
+                    String department = getAttribute(attributes, "department");
+                    if (department != null) {
+                        if (departments.length() > 0) {
+                            departments.append(",");
+                        }
+                        departments.append(department);
                     }
+                }
+
+                // Маппинг дополнительных атрибутов
+                if (objectClass != null && objectClass.contains("ulstuPerson")) {
+                    userDetails.setUsername(username);
+                    userDetails.setFirstName(getAttribute(attributes, "firstName"));
+                    userDetails.setLastName(getAttribute(attributes, "lastName"));
+                    userDetails.setEmail(getAttribute(attributes, "displayMail"));
+                    userDetails.setPhoneNumber(getAttribute(attributes, "displayPhone"));
                 }
             }
 
-            String department = String.join(", ", departments);
-
-            LdapUserDetails userDetails = new LdapUserDetails();
-            userDetails.setUsername(username);
-            userDetails.setFirstName(firstName);
-            userDetails.setLastName(lastName);
-            userDetails.setEmail(email);
-            userDetails.setPhoneNumber(phoneNumber);
-            userDetails.setDepartment(department);
-
+            userDetails.setDepartment(departments.toString());
             System.out.println("Данные пользователя: " + userDetails);
+
             return userDetails;
 
         } catch (Exception e) {
-            System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
-            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username + " Ошибка: " + e.getMessage());
+            System.out.println("Ошибка при запросе LDAP: " + e.getMessage());
+            throw new RuntimeException("Ошибка при запросе LDAP: " + e.getMessage());
         } finally {
             try {
                 context.close();
@@ -112,6 +102,7 @@ public class LdapService {
         env.put(Context.SECURITY_CREDENTIALS, ldapPassword);
 
         try {
+            System.out.println("Удачное подключение к LDAP.");
             return new InitialLdapContext(env, null);
         } catch (NamingException e) {
             System.out.println("Ошибка при создании LDAP контекста: " + e.getMessage());

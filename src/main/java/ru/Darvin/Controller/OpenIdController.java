@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import ru.Darvin.DTO.Domain.TokenResponse;
+import ru.Darvin.Service.JwtService;
 import ru.Darvin.Service.LdapService;
 import ru.Darvin.Service.OpenIdTokenService;
 import ru.Darvin.Service.UserService;
@@ -34,6 +36,9 @@ public class OpenIdController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private JwtService jwtService;
+
     @GetMapping("/admin-ajax.php")
     public ResponseEntity<?> handleOpenIdRedirect(@RequestParam(value = "action", required = false) String action,
                                                   @RequestParam(value = "code", required = false) String code,
@@ -63,9 +68,19 @@ public class OpenIdController {
             // Создание или обновление пользователя
             userService.createOrUpdateUser(userDetails);
 
-            return ResponseEntity.ok("Пользователь успешно обработан: " + username + "Ответ от open id: " + openIdResponse);
+            // Генерация JWT токена для пользователя
+
+            var user = userService.userDetailsService()
+                    .loadUserByUsername(userDetails.getUsername());
+
+            var jwt = jwtService.generateToken(user);
+
+            // Возвращаем JWT токен на фронт
+            return ResponseEntity.ok(new TokenResponse(jwt));
+
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка обработки OpenID: " + e.getMessage());
         }
     }
 }
+

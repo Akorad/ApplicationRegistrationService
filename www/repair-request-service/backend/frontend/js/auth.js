@@ -1,18 +1,16 @@
-document.addEventListener("DOMContentLoaded", async function () {
+document.addEventListener("DOMContentLoaded", function () {
     const authContainer = document.getElementById("modalContainerAuth");
-
     if (!authContainer) {
         console.error("Элемент #modalContainerAuth не найден.");
         return;
     }
 
     // Загружаем модальное окно авторизации
-    await loadAuthModal();
-    setTimeout(checkAuthStatus , 200);
-    //checkAuthStatus(); // Проверка статуса авторизации при загрузке страницы
+    loadAuthModal();
+    setTimeout(checkAuthStatus, 200);
 });
 
-// Загрузка модального окна авторизации
+// Загружаем модальное окно авторизации
 async function loadAuthModal() {
     try {
         const response = await fetch("/templates/auth.html");
@@ -39,7 +37,7 @@ function initAuthEvents() {
     }
 
     // Обработчик отправки формы авторизации
-    loginForm.addEventListener('submit', handleLogin);
+    loginForm.addEventListener('submit', handleLocalLogin);
 
     // Обработчик кнопки "Войти"
     loginButton.addEventListener("click", () => $('#loginModal').modal('show'));
@@ -48,8 +46,8 @@ function initAuthEvents() {
     logoutButton.addEventListener("click", handleLogout);
 }
 
-// Обработчик отправки формы авторизации
-async function handleLogin(event) {
+// Обработчик отправки формы локальной авторизации
+async function handleLocalLogin(event) {
     event.preventDefault();
     const formData = new FormData(event.target);
     const requestData = {
@@ -66,34 +64,25 @@ async function handleLogin(event) {
 
         if (response.ok) {
             const data = await response.json();
-            localStorage.setItem('token', data.token);
-
-            // Декодирование роли пользователя
-            const parsedToken = parseJwt(data.token);
-            if (parsedToken?.role) {
-                localStorage.setItem('userRole', parsedToken.role);
-                showAlert('Вход выполнен успешно!');
-                $('#loginModal').modal('hide');
-                setTimeout(checkAuthStatus , 200); // Обновление состояния кнопок
-                location.reload();
-            } else {
-                console.error("Роль не найдена");
-            }
+            saveAuthToken(data.token);  // Сохраняем токен в localStorage
+            alert('Вход выполнен успешно!');
+            $('#loginModal').modal('hide');
+            setTimeout(checkAuthStatus , 200); // Обновление состояния кнопок
+            location.reload();
         } else {
-            showAlert('Ошибка при входе. Проверьте имя пользователя и пароль.');
+            alert('Ошибка при входе. Проверьте имя пользователя и пароль.');
         }
     } catch (error) {
-        showAlert('Ошибка при авторизации.', 'danger'); // Используем Bootstrap alert danger
+        alert('Ошибка при авторизации.');
         console.error("Ошибка при авторизации:", error);
     }
 }
 
 // Обработчик кнопки "Выйти"
 function handleLogout() {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userRole");
-    showAlert("Выход выполнен");
-    setTimeout(checkAuthStatus , 200);// Обновление состояния кнопок
+    clearAuthToken();
+    alert("Выход выполнен");
+    setTimeout(checkAuthStatus, 200); // Обновление состояния кнопок
     location.reload();
 }
 
@@ -143,14 +132,7 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
-//тест новго опен айды
-const openIdConfig = {
-    clientId: '89a015d24a66b01a77fe30059820593e177c43b32c9c3c4ea711eb5610639347',
-    redirectUri: 'http://repair.laop.ulstu.ru/wp-admin/admin-ajax.php?action=openid-connect-authorize',
-    loginUrl: 'https://lk.ulstu.ru/?q=auth%2Flogin',
-    scope: 'openid',
-};
-
+// Обработка авторизации через OpenID
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname === '/guest') {
         handleLocalAuth();
@@ -253,7 +235,7 @@ function handleLocalAuth() {
 
             if (response.ok) {
                 const data = await response.json();
-                localStorage.setItem('token', data.token);
+                saveAuthToken(data.token);  // Сохраняем токен в localStorage
                 alert('Вход выполнен успешно!');
                 location.reload();
             } else {
@@ -266,26 +248,14 @@ function handleLocalAuth() {
     });
 }
 
-// Перехват токена из URL при загрузке страницы
-document.addEventListener("DOMContentLoaded", function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token'); // предполагаем, что токен передаётся в параметре "token"
+// Сохранение токена
+function saveAuthToken(token) {
+    localStorage.setItem('token', token);  // Сохраняем токен в localStorage
+    // Вы можете использовать secure cookies или другие методы безопасности
+}
 
-    if (token) {
-        // Сохраняем токен в localStorage или sessionStorage
-        localStorage.setItem('token', token);
-
-        // Опционально: перенаправление на главную страницу или другую страницу после сохранения токена
-        window.location.href = '/'; // или другая страница, на которую должен быть редирект
-    } else {
-        // Если токен не найден в URL, проверяем его в localStorage
-        const savedToken = localStorage.getItem('token');
-        if (savedToken) {
-            // Токен есть в localStorage, продолжаем работу с ним
-            console.log('Токен найден в localStorage:', savedToken);
-        } else {
-            // Если токен отсутствует, можно выполнить редирект на страницу авторизации
-            window.location.href = '/auth/login';
-        }
-    }
-});
+// Очистка токена
+function clearAuthToken() {
+    localStorage.removeItem('token');
+    document.cookie = "authToken=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
+}

@@ -132,6 +132,13 @@ function parseJwt(token) {
     return JSON.parse(jsonPayload);
 }
 
+const openIdConfig = {
+    clientId: '89a015d24a66b01a77fe30059820593e177c43b32c9c3c4ea711eb5610639347',
+    redirectUri: 'http://repair.laop.ulstu.ru/wp-admin/admin-ajax.php?action=openid-connect-authorize',
+    loginUrl: 'https://lk.ulstu.ru/?q=auth%2Flogin',
+    scope: 'openid',
+};
+
 // Обработка авторизации через OpenID
 document.addEventListener('DOMContentLoaded', () => {
     if (window.location.pathname === '/guest') {

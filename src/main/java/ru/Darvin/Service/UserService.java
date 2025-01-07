@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
@@ -38,6 +39,9 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
 
     @Autowired
     private final UserRepository userRepository;
+
+    @Autowired
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * Сохранение пользователя.
@@ -197,6 +201,10 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
             user.setDepartment(ldapUserDetails.getDepartment());
             user.setPhoneNumber(ldapUserDetails.getPhoneNumber());
             user.setRole(USER); // Роль по умолчанию
+            // Устанавливаем временный пароль
+            String defaultPassword = "default_password"; // Или пустой хэшированный пароль
+            String encodedPassword = passwordEncoder.encode(defaultPassword);
+            user.setPassword(encodedPassword);
         }
 
         // Сохраняем пользователя в базе данных

@@ -1,101 +1,95 @@
 package ru.Darvin.Service;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.ldap.core.AttributesMapper;
-import org.springframework.ldap.core.LdapTemplate;
-import org.springframework.ldap.core.support.LdapContextSource;
 import org.springframework.stereotype.Service;
 import ru.Darvin.DTO.LdapUserDetails;
 
+import javax.naming.Context;
+import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
-import javax.naming.directory.Attributes;
-import java.util.List;
+import javax.naming.directory.*;
+import javax.naming.ldap.InitialLdapContext;
+import javax.naming.ldap.LdapContext;
+import java.util.Hashtable;
 
 @Service
 public class LdapService {
 
-    private final LdapTemplate ldapTemplate;
-
     @Value("${spring.ldap.base}")
     private String ldapBase;
-
-    public LdapService(LdapTemplate ldapTemplate) {
-        this.ldapTemplate = ldapTemplate;
-    }
-
-//    @Bean
-//    public LdapContextSource contextSource() {
-//        LdapContextSource contextSource = new LdapContextSource();
-//        contextSource.setUrl("ldap://lk.ustu:389");
-//        contextSource.setBase("dc=ams,dc=ulstu,dc=ru");
-//        contextSource.setUserDn("cn=repair,ou=services,dc=ams,dc=ulstu,dc=ru"); // Здесь указывается DN пользователя
-//        contextSource.setPassword("J*t9L_6heQ86M+a5%"); // Здесь указывается пароль
-//        contextSource.setPooled(false);  // Отключаем пул для упрощения отладки
-//        return contextSource;
-//    }
-
+    @Value("${spring.ldap.urls}")
+    private String ldapUrl;
+    @Value("${spring.ldap.username}")
+    private String ldapUserDn;
+    @Value("${spring.ldap.password}")
+    private String ldapPassword;
 
     public LdapUserDetails getUserDetails(String username) {
         // Логирование начала запроса
         System.out.println("Запрос LDAP для пользователя: " + username);
 
         // Тест подключения к LDAP серверу
-        if (!testLdapConnection()) {
+        LdapContext context = createLdapContext();
+        if (context == null) {
             System.out.println("Не удалось подключиться к LDAP серверу.");
-            return null; // Возвращаем null, если не удалось подключиться
+            return null;
         }
 
-        // Фильтр для поиска пользователя по имени
+        // Формируем базу поиска и фильтр
+        String searchBase = "ou=accounts," + ldapBase;
         String filter = "(uid=" + username + ")";
+        System.out.println("Поиск пользователя с фильтром: " + filter);
+        System.out.println("Search Base: " + searchBase);
 
         try {
-            // Указываем полный DN для поиска в подкаталоге ou=accounts
-            String searchBase = "ou=accounts," + ldapBase;
+            // Параметры поиска
+            SearchControls searchControls = new SearchControls();
+            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE); // Поиск во всех подкаталогах
 
-            // Логируем перед выполнением запроса
-            System.out.println("Поиск пользователя с фильтром: " + filter);
-            System.out.println("Search Base: " + searchBase);
+            // Выполняем поиск
+            NamingEnumeration<SearchResult> results = context.search(searchBase, filter, searchControls);
 
-            // Запрос в LDAP
-            List<LdapUserDetails> result = ldapTemplate.search(
-                    searchBase,
-                    filter,
-                    (AttributesMapper<LdapUserDetails>) attributes -> mapToUserDetails(attributes, username)
-            );
-
-            // Проверка на наличие результатов
-            if (result.isEmpty()) {
+            if (!results.hasMore()) {
                 System.out.println("Пользователь " + username + " не найден в LDAP.");
                 return null;
             }
 
-            // Логируем количество найденных результатов
-            System.out.println("Найдено пользователей: " + result.size());
+            // Получаем первую запись результата
+            SearchResult searchResult = results.next();
+            Attributes attributes = searchResult.getAttributes();
 
-            // Печать атрибутов первого результата для отладки
-            LdapUserDetails userDetails = result.get(0);
+            // Маппим атрибуты в объект LdapUserDetails
+            LdapUserDetails userDetails = mapToUserDetails(attributes, username);
             System.out.println("Данные пользователя: " + userDetails);
 
-            // Возвращаем первый результат
+            // Возвращаем найденного пользователя
             return userDetails;
 
         } catch (Exception e) {
-            // Логируем ошибку
             System.out.println("Ошибка при запросе LDAP для пользователя: " + username + ", " + e.getMessage());
-            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: "+ username +" Ошибка: "+ e.getMessage());
+            throw new RuntimeException("Ошибка при запросе LDAP для пользователя: " + username + " Ошибка: " + e.getMessage());
+        } finally {
+            try {
+                context.close();
+            } catch (NamingException e) {
+                System.out.println("Ошибка при закрытии LDAP контекста: " + e.getMessage());
+            }
         }
     }
 
-    private boolean testLdapConnection() {
+    private LdapContext createLdapContext() {
+        Hashtable<String, String> env = new Hashtable<>();
+        env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
+        env.put(Context.PROVIDER_URL, ldapUrl);
+        env.put(Context.SECURITY_AUTHENTICATION, "simple");
+        env.put(Context.SECURITY_PRINCIPAL, ldapUserDn);
+        env.put(Context.SECURITY_CREDENTIALS, ldapPassword);
+
         try {
-            // Пробуем выполнить запрос к LDAP серверу для проверки соединения
-            ldapTemplate.search("", "(objectClass=*)", (AttributesMapper<Object>) attributes -> null);
-            System.out.println("LDAP сервер доступен.");
-            return true;
-        } catch (Exception e) {
-            System.out.println("Ошибка подключения к LDAP серверу: " + e.getMessage());
-            return false;
+            return new InitialLdapContext(env, null);
+        } catch (NamingException e) {
+            System.out.println("Ошибка при создании LDAP контекста: " + e.getMessage());
+            return null;
         }
     }
 
@@ -126,5 +120,4 @@ public class LdapService {
             return null;
         }
     }
-
 }

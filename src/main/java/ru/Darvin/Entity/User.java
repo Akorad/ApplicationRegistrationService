@@ -38,6 +38,7 @@ public class User implements UserDetails {
 
     @Column(name = "email")
     private String email;               //Почта
+    @Column(length = 500)
     private String department;          //Наименование отдела в котором работает
     private String phoneNumber;         //Номер телефона
 

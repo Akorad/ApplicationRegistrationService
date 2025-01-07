@@ -75,8 +75,16 @@ public class OpenIdController {
 
             var jwt = jwtService.generateToken(user);
 
-            // Возвращаем JWT токен на фронт
-            return ResponseEntity.ok(new TokenResponse(jwt));
+            // Формируем редирект с токеном
+            String redirectUrl = "http://repair.laop.ulstu.ru/"; // Главная страница
+
+            // Включаем токен в URL как параметр
+            redirectUrl = redirectUrl + "?token=" + jwt;
+
+            // Отправляем ответ с редиректом
+            return ResponseEntity.status(HttpStatus.FOUND)
+                    .header(HttpHeaders.LOCATION, redirectUrl)
+                    .build();
 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка обработки OpenID: " + e.getMessage());

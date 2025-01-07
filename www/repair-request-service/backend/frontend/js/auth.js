@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async function () {
     const authContainer = document.getElementById("modalContainerAuth");
 
@@ -143,95 +142,6 @@ function parseJwt(token) {
 
     return JSON.parse(jsonPayload);
 }
-//тест опен айды
-// // Устанавливаем токен в HTTP-only Secure Cookie
-// function setAuthToken(token) {
-//     document.cookie = `authToken=${token}; Max-Age=172800; Path=/; Secure; HttpOnly; SameSite=Strict;`;
-// }
-//
-// // Удаляем токен из Cookie
-// function clearAuthToken() {
-//     document.cookie = 'authToken=; Max-Age=0; Path=/; Secure; HttpOnly; SameSite=Strict;';
-// }
-//
-// // Получаем токен из Cookie
-// function getAuthToken() {
-//     const cookies = document.cookie.split('; ');
-//     for (const cookie of cookies) {
-//         const [name, value] = cookie.split('=');
-//         if (name === 'authToken') {
-//             return value;
-//         }
-//     }
-//     return null;
-// }
-//
-// // Функция автоматического логаута при истечении срока действия токена
-// function setupAutoLogout(expirationTime) {
-//     const logoutTime = expirationTime - Date.now() - 5 * 60 * 1000; // 5 минут до истечения
-//     if (logoutTime > 0) {
-//         setTimeout(() => {
-//             alert('Ваша сессия истекает, вы будете перенаправлены на страницу входа.');
-//             logout();
-//         }, logoutTime);
-//     } else {
-//         logout();
-//     }
-// }
-//
-// // Логаут пользователя (удаляем токен и перенаправляем на страницу входа)
-// function logout() {
-//     clearAuthToken();
-//     window.location.href = '/login'; // Перенаправление на страницу входа
-// }
-//
-// // Обработчик события для кнопки "Выйти"
-// document.getElementById('logoutButton')?.addEventListener('click', () => {
-//     logout();
-// });
-//
-// // Проверяем токен при загрузке страницы и настраиваем авто-логаут
-// window.addEventListener('load', () => {
-//     const token = getAuthToken();
-//     if (token) {
-//         const payload = JSON.parse(atob(token.split('.')[1])); // Декодируем payload токена JWT
-//         const expirationTime = payload.exp * 1000; // Время истечения токена
-//         setupAutoLogout(expirationTime);
-//     } else {
-//         window.location.href = '/login'; // Перенаправление на страницу входа, если токена нет
-//     }
-// });
-//
-// const openIdConfig = {
-//     loginUrl: 'https://lk.ulstu.ru/?q=oidc/auth',
-//     clientId: '89a015d24a66b01a77fe30059820593e177c43b32c9c3c4ea711eb5610639347',
-//     redirectUri: window.location.origin + '/login',
-//     responseType: 'token',
-//     scope: 'openid',
-// };
-//
-// function redirectToOpenIDLogin() {
-//     const loginUrl = `${openIdConfig.loginUrl}?response_type=${openIdConfig.responseType}&client_id=${openIdConfig.clientId}&redirect_uri=${encodeURIComponent(openIdConfig.redirectUri)}&scope=${openIdConfig.scope}`;
-//     window.location.href = loginUrl;
-// }
-//
-// function handleOpenIDResponse() {
-//     const hash = window.location.hash.substring(1);
-//     const params = new URLSearchParams(hash);
-//     const token = params.get('access_token');
-//     if (token) {
-//         setAuthToken(token);
-//         window.location.href = '/'; // Перенаправляем на домашнюю страницу
-//     } else {
-//         console.error('Token not found in OpenID response');
-//     }
-// }
-//
-// window.addEventListener('DOMContentLoaded', () => {
-//     if (window.location.pathname === '/login') {
-//         handleOpenIDResponse();
-//     }
-// });
 
 //тест новго опен айды
 const openIdConfig = {
@@ -319,15 +229,6 @@ function setupAutoLogout(token) {
     }
 }
 
-function parseJwt(token) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c =>
-        '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)
-    ).join(''));
-    return JSON.parse(jsonPayload);
-}
-
 function logout() {
     clearAuthToken();
     window.location.href = '/auth/callback';
@@ -365,3 +266,26 @@ function handleLocalAuth() {
     });
 }
 
+// Перехват токена из URL при загрузке страницы
+document.addEventListener("DOMContentLoaded", function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token'); // предполагаем, что токен передаётся в параметре "token"
+
+    if (token) {
+        // Сохраняем токен в localStorage или sessionStorage
+        localStorage.setItem('token', token);
+
+        // Опционально: перенаправление на главную страницу или другую страницу после сохранения токена
+        window.location.href = '/'; // или другая страница, на которую должен быть редирект
+    } else {
+        // Если токен не найден в URL, проверяем его в localStorage
+        const savedToken = localStorage.getItem('token');
+        if (savedToken) {
+            // Токен есть в localStorage, продолжаем работу с ним
+            console.log('Токен найден в localStorage:', savedToken);
+        } else {
+            // Если токен отсутствует, можно выполнить редирект на страницу авторизации
+            window.location.href = '/auth/login';
+        }
+    }
+});

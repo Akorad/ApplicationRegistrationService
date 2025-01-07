@@ -10,7 +10,9 @@ import javax.naming.NamingException;
 import javax.naming.directory.*;
 import javax.naming.ldap.InitialLdapContext;
 import javax.naming.ldap.LdapContext;
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.List;
 
 @Service
 public class LdapService {
@@ -25,28 +27,23 @@ public class LdapService {
     private String ldapPassword;
 
     public LdapUserDetails getUserDetails(String username) {
-        // Логирование начала запроса
         System.out.println("Запрос LDAP для пользователя: " + username);
 
-        // Тест подключения к LDAP серверу
         LdapContext context = createLdapContext();
         if (context == null) {
             System.out.println("Не удалось подключиться к LDAP серверу.");
             return null;
         }
 
-        // Формируем базу поиска и фильтр
         String searchBase = "ou=accounts," + ldapBase;
-        String filter = "(uid=" + username + ")";
+        String filter = "(&(uid=" + username + ")(|(objectClass=ulstuPerson)(objectClass=ulstuCourse)(objectClass=ulstuJob)))";
         System.out.println("Поиск пользователя с фильтром: " + filter);
         System.out.println("Search Base: " + searchBase);
 
         try {
-            // Параметры поиска
             SearchControls searchControls = new SearchControls();
-            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE); // Поиск во всех подкаталогах
+            searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
 
-            // Выполняем поиск
             NamingEnumeration<SearchResult> results = context.search(searchBase, filter, searchControls);
 
             if (!results.hasMore()) {
@@ -54,15 +51,44 @@ public class LdapService {
                 return null;
             }
 
-            // Получаем первую запись результата
-            SearchResult searchResult = results.next();
-            Attributes attributes = searchResult.getAttributes();
+            List<String> departments = new ArrayList<>();
+            String firstName = null, lastName = null, email = null, phoneNumber = null;
 
-            // Маппим атрибуты в объект LdapUserDetails
-            LdapUserDetails userDetails = mapToUserDetails(attributes, username);
+            while (results.hasMore()) {
+                SearchResult searchResult = results.next();
+                Attributes attributes = searchResult.getAttributes();
+
+                if (attributes.get("firstName") != null) {
+                    firstName = getAttribute(attributes, "firstName");
+                }
+                if (attributes.get("lastName") != null) {
+                    lastName = getAttribute(attributes, "lastName");
+                }
+                if (attributes.get("displayMail") != null) {
+                    email = getAttribute(attributes, "displayMail");
+                }
+                if (attributes.get("displayPhone") != null) {
+                    phoneNumber = getAttribute(attributes, "displayPhone");
+                }
+                if (attributes.get("department") != null) {
+                    NamingEnumeration<?> departmentsEnum = attributes.get("department").getAll();
+                    while (departmentsEnum.hasMore()) {
+                        departments.add(departmentsEnum.next().toString());
+                    }
+                }
+            }
+
+            String department = String.join(", ", departments);
+
+            LdapUserDetails userDetails = new LdapUserDetails();
+            userDetails.setUsername(username);
+            userDetails.setFirstName(firstName);
+            userDetails.setLastName(lastName);
+            userDetails.setEmail(email);
+            userDetails.setPhoneNumber(phoneNumber);
+            userDetails.setDepartment(department);
+
             System.out.println("Данные пользователя: " + userDetails);
-
-            // Возвращаем найденного пользователя
             return userDetails;
 
         } catch (Exception e) {
@@ -89,25 +115,6 @@ public class LdapService {
             return new InitialLdapContext(env, null);
         } catch (NamingException e) {
             System.out.println("Ошибка при создании LDAP контекста: " + e.getMessage());
-            return null;
-        }
-    }
-
-    private LdapUserDetails mapToUserDetails(Attributes attributes, String username) throws NamingException {
-        try {
-            System.out.println("Маппинг атрибутов для пользователя: " + username);
-
-            LdapUserDetails details = new LdapUserDetails();
-            details.setUsername(username);
-            details.setFirstName(getAttribute(attributes, "firstName"));
-            details.setLastName(getAttribute(attributes, "lastName"));
-            details.setEmail(getAttribute(attributes, "displayMail"));
-            details.setDepartment(getAttribute(attributes, "department"));
-            details.setPhoneNumber(getAttribute(attributes, "displayPhone"));
-
-            return details;
-        } catch (Exception e) {
-            System.out.println("Ошибка mapToUserDetails: " + e.getMessage());
             return null;
         }
     }

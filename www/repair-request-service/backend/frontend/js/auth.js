@@ -266,7 +266,35 @@
 //         }
 //     });
 // }
+
+
+// ОПТИМИЗАЦИЯ
+
+
+// document.addEventListener("DOMContentLoaded", async function () {
+//     const authContainer = document.getElementById("modalContainerAuth");
+//     if (!authContainer) {
+//         console.error("Элемент #modalContainerAuth не найден.");
+//         return;
+//     }
 //
+//     await loadAuthModal();
+//     initializeAuth(); // Инициализация авторизации
+//
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const token = urlParams.get('token');
+//     if (token) {
+//         saveToken(token);
+//         window.history.replaceState({}, document.title, window.location.pathname);
+//     }
+//
+//     if (window.location.pathname === '/guest') {
+//         handleLocalAuth();
+//     } else {
+//         checkOpenIDAuth();
+//     }
+// });
+
 document.addEventListener("DOMContentLoaded", async function () {
     const authContainer = document.getElementById("modalContainerAuth");
     if (!authContainer) {
@@ -277,12 +305,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     await loadAuthModal();
     initializeAuth(); // Инициализация авторизации
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token');
-    if (token) {
-        saveToken(token);
-        window.history.replaceState({}, document.title, window.location.pathname);
-    }
+    processURLToken(); // Проверка и сохранение токена из URL
 
     if (window.location.pathname === '/guest') {
         handleLocalAuth();
@@ -290,6 +313,65 @@ document.addEventListener("DOMContentLoaded", async function () {
         checkOpenIDAuth();
     }
 });
+
+// Обработка токена из URL
+function processURLToken() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    if (token) {
+        saveToken(token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+}
+
+// function handleLocalAuth() {
+//     const loginForm = document.getElementById('loginForm');
+//     loginForm?.addEventListener('submit', async (event) => {
+//         event.preventDefault();
+//         const formData = new FormData(event.target);
+//         const requestData = {
+//             username: formData.get('username'),
+//             password: formData.get('password')
+//         };
+//
+//         try {
+//             const response = await fetch(`/auth/sign-in`, {
+//                 method: 'POST',
+//                 body: JSON.stringify(requestData),
+//                 headers: { 'Content-Type': 'application/json' }
+//             });
+//
+//             if (response.ok) {
+//                 const data = await response.json();
+//                 localStorage.setItem('token', data.token);
+//                 alert('Вход выполнен успешно!');
+//                 location.reload();
+//             } else {
+//                 alert('Ошибка при входе. Проверьте имя пользователя и пароль.');
+//             }
+//         } catch (error) {
+//             alert('Ошибка при авторизации.');
+//             console.error("Ошибка при авторизации:", error);
+//         }
+//     });
+// }
+
+
+
+// Локальная авторизация
+function handleLocalAuth() {
+    const loginForm = document.getElementById('loginForm');
+    loginForm?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const requestData = getFormData(event.target);
+        try {
+            const response = await sendAuthRequest('/auth/sign-in', requestData);
+            handleAuthResponse(response);
+        } catch (error) {
+            handleAuthError(error);
+        }
+    });
+}
 
 // Загрузка модального окна
 async function loadAuthModal() {
@@ -303,7 +385,31 @@ async function loadAuthModal() {
         console.error("Ошибка загрузки auth.html:", error);
     }
 }
-// Инициализация событий для авторизации
+
+
+
+// // Инициализация событий для авторизации
+// function initAuthEvents() {
+//     const loginForm = document.getElementById('loginForm');
+//     const loginButton = document.getElementById("loginButton");
+//     const logoutButton = document.getElementById("logoutButton");
+//
+//     if (!loginForm || !loginButton || !logoutButton) {
+//         console.error("Не все элементы авторизации загружены.");
+//         return;
+//     }
+//
+//     // Обработчик отправки формы авторизации
+//     loginForm.addEventListener('submit', handleLogin);
+//
+//     // Обработчик кнопки "Войти"
+//     loginButton.addEventListener("click", () => $('#loginModal').modal('show'));
+//
+//     // Обработчик кнопки "Выйти"
+//     logoutButton.addEventListener("click", handleLogout);
+// }
+
+// Инициализация событий авторизации
 function initAuthEvents() {
     const loginForm = document.getElementById('loginForm');
     const loginButton = document.getElementById("loginButton");
@@ -314,54 +420,103 @@ function initAuthEvents() {
         return;
     }
 
-    // Обработчик отправки формы авторизации
     loginForm.addEventListener('submit', handleLogin);
-
-    // Обработчик кнопки "Войти"
     loginButton.addEventListener("click", () => $('#loginModal').modal('show'));
-
-    // Обработчик кнопки "Выйти"
     logoutButton.addEventListener("click", handleLogout);
 }
 
-// Обработчик отправки формы авторизации
+// // Обработчик отправки формы авторизации
+// async function handleLogin(event) {
+//     event.preventDefault();
+//     const formData = new FormData(event.target);
+//     const requestData = {
+//         username: formData.get('username'),
+//         password: formData.get('password')
+//     };
+//
+//     try {
+//         const response = await fetch(`${window.config.apiUrl}/auth/sign-in`,  {
+//             method: 'POST',
+//             body: JSON.stringify(requestData),
+//             headers: { 'Content-Type': 'application/json' }
+//         });
+//
+//         if (response.ok) {
+//             const data = await response.json();
+//             localStorage.setItem('token', data.token);
+//
+//             // Декодирование роли пользователя
+//             const parsedToken = parseJwt(data.token);
+//             if (parsedToken?.role) {
+//                 localStorage.setItem('userRole', parsedToken.role);
+//                 showAlert('Вход выполнен успешно!');
+//                 $('#loginModal').modal('hide');
+//                 setTimeout(checkAuthStatus , 200); // Обновление состояния кнопок
+//                 location.reload();
+//             } else {
+//                 console.error("Роль не найдена");
+//             }
+//         } else {
+//             showAlert('Ошибка при входе. Проверьте имя пользователя и пароль.');
+//         }
+//     } catch (error) {
+//         showAlert('Ошибка при авторизации.', 'danger'); // Используем Bootstrap alert danger
+//         console.error("Ошибка при авторизации:", error);
+//     }
+// }
+
+// Обработчик входа
 async function handleLogin(event) {
     event.preventDefault();
-    const formData = new FormData(event.target);
-    const requestData = {
+    const requestData = getFormData(event.target);
+    try {
+        const response = await sendAuthRequest(`${window.config.apiUrl}/auth/sign-in`, requestData);
+        handleAuthResponse(response);
+    } catch (error) {
+        handleAuthError(error);
+    }
+}
+
+// Получение данных из формы
+function getFormData(form) {
+    const formData = new FormData(form);
+    return {
         username: formData.get('username'),
         password: formData.get('password')
     };
+}
 
-    try {
-        const response = await fetch(`${window.config.apiUrl}/auth/sign-in`,  {
-            method: 'POST',
-            body: JSON.stringify(requestData),
-            headers: { 'Content-Type': 'application/json' }
-        });
+// Отправка запроса авторизации
+async function sendAuthRequest(url, data) {
+    return await fetch(url, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: { 'Content-Type': 'application/json' }
+    });
+}
 
-        if (response.ok) {
-            const data = await response.json();
-            localStorage.setItem('token', data.token);
-
-            // Декодирование роли пользователя
-            const parsedToken = parseJwt(data.token);
-            if (parsedToken?.role) {
-                localStorage.setItem('userRole', parsedToken.role);
+// Обработка успешного ответа авторизации
+function handleAuthResponse(response) {
+    if (response.ok) {
+        response.json().then(data => {
+            saveToken(data.token);
+            const userRole = parseJwt(data.token)?.role;
+            if (userRole) {
+                localStorage.setItem('userRole', userRole);
                 showAlert('Вход выполнен успешно!');
                 $('#loginModal').modal('hide');
-                setTimeout(checkAuthStatus , 200); // Обновление состояния кнопок
                 location.reload();
-            } else {
-                console.error("Роль не найдена");
             }
-        } else {
-            showAlert('Ошибка при входе. Проверьте имя пользователя и пароль.');
-        }
-    } catch (error) {
-        showAlert('Ошибка при авторизации.', 'danger'); // Используем Bootstrap alert danger
-        console.error("Ошибка при авторизации:", error);
+        });
+    } else {
+        showAlert('Ошибка при входе. Проверьте имя пользователя и пароль.');
     }
+}
+
+// Обработка ошибок авторизации
+function handleAuthError(error) {
+    showAlert('Ошибка при авторизации.', 'danger');
+    console.error("Ошибка при авторизации:", error);
 }
 
 // Проверка статуса авторизации
@@ -464,8 +619,17 @@ function updateUI(isLoggedIn) {
 function checkOpenIDAuth() {
     const token = getToken();
     if (!token) {
+        if (isLocalhost()) {
+            console.warn("Локальное тестирование: OpenID авторизация пропущена.");
+            return;
+        }
         redirectToOpenIDLogin();
     }
+}
+
+// Проверка, работает ли приложение на localhost
+function isLocalhost() {
+    return window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 }
 
 // Редирект на OpenID

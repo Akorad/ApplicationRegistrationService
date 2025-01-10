@@ -137,6 +137,27 @@
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
+#scrollToTopBtn {
+    position: sticky;
+    bottom: 20px;
+    left: 20px;
+    display: none;
+    z-index: 1000;
+    background-color: rgba(0, 123, 255, 0.5); /* Полупрозрачный синий цвет */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.3s ease, background-color 0.3s ease; /* Плавный переход для opacity и цвета */
+}
+
+#scrollToTopBtn:hover {
+    background-color: #007bff; /* Непрозрачный синий цвет */
+    opacity: 1; /* Полная непрозрачность при наведении */
+}
+
 
 
 

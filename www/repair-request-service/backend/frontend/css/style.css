@@ -320,6 +320,9 @@ span {
 
 #filterPanel {
     height: max-content;
+    border-width: thin;
+    border-style: solid;
+    border-color: black;
 }
 
 #closeFilterButton {
@@ -337,6 +340,6 @@ span {
 }
 /* Для таблицы с классом .closed-ticket, все строки с этим классом получат серый фон */
 .closed-ticket td {
-    background-color: gray !important; /* Серый фон для всех ячеек в закрытой заявке */
-    color: white !important;           /* Белый цвет текста */
+    background-color: gray; /* Серый фон для всех ячеек в закрытой заявке */
+    color: white;           /* Белый цвет текста */
 }

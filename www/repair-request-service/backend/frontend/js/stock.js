@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             const requests = await response.json();
             if (requests.length === 0) {
-                requestsList.innerHTML = "Заявки с этим расходным материалом не найдены.";
+                showAlert ("Заявки с этим расходным материалом не найдены.");
                 return;
             }
 
@@ -364,4 +364,27 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     // Загрузка материалов при загрузке страницы
     loadMaterials();
+
+    // Получаем ссылку на кнопку
+    const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+
+    // Когда пользователь прокручивает страницу
+    window.onscroll = function() {
+        // Если страница прокручена более чем на 300px, показываем кнопку
+        if (document.body.scrollTop > 300 || document.documentElement.scrollTop > 300) {
+            scrollToTopBtn.style.display = "block";
+        } else {
+            scrollToTopBtn.style.display = "none";
+        }
+    };
+
+    // Когда пользователь кликает на кнопку, плавно прокручиваем страницу наверх
+    scrollToTopBtn.onclick = function() {
+        window.scrollTo({
+            top: 0,
+            left: 0,
+            behavior: "smooth"
+        });
+    };
+
 });

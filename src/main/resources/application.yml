@@ -16,6 +16,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        show_sql: false
   security:
     oauth2:
       client:
@@ -63,13 +64,7 @@ openid:
   token-endpoint: https://lk.ulstu.ru/?q=oidc/token
   end-session-url: https://lk.ulstu.ru/?q=auth/logout
   redirect-uri: http://repair.laop.ulstu.ru/wp-admin/admin-ajax.php?action=openid-connect-authorize
-logging:
-  level:
-    org.springframework.ldap: DEBUG
-    org.springframework.ldap.core: DEBUG
-    org.springframework.ldap.core.LdapTemplate: DEBUG
-    org.springframework.ldap.core.support.AbstractContextSource: DEBUG
-    org.springframework.ldap.core.support.LdapContextSource: DEBUG
+
 
 
 

@@ -15,29 +15,6 @@
     height: auto; /* Сохраняем пропорции изображения */
     transition: transform 0.3s ease-in-out; /* Плавный переход при наведении */
 }
-/*!* Эффект увеличения при наведении *!*/
-/*.material-image:hover {*/
-/*    transform: scale(1.4); !* Увеличиваем изображение на 40% *!*/
-/*    cursor: pointer; !* Добавляем курсор для интерактивности *!*/
-/*    z-index: 999;*/
-/*}*/
-
-/*!* Стили для мобильных устройств *!*/
-/*@media (max-width: 768px) {*/
-/*    .material-image {*/
-/*        max-width: 100%; !* Используем всю ширину экрана *!*/
-/*    }*/
-/*}*/
-
-/*@media (max-width: 480px) {*/
-/*    .material-image {*/
-/*        max-width: 90%; !* Немного уменьшаем ширину для маленьких экранов *!*/
-/*    }*/
-
-/*    .material-image img {*/
-/*        transition: transform 0.2s ease-in-out; !* Уменьшаем скорость анимации *!*/
-/*    }*/
-/*}*/
 
 /* Общий контейнер переключателя */
 .form-switcher-container {
@@ -141,12 +118,6 @@
     transition: transform 0.3s ease-in-out;
 }
 
-/*!* Увеличение изображения при наведении *!*/
-/*.image-cell img:hover {*/
-/*    transform: scale(1.2);*/
-/*    cursor: pointer;*/
-/*}*/
-
 /* Маленькая кнопка "Редактировать" */
 .edit-image-btn {
     position: absolute;
@@ -167,11 +138,6 @@
     transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-/*!* Эффекты наведения на кнопку *!*/
-/*.edit-image-btn:hover {*/
-/*    background-color: #0056b3;*/
-/*    transform: scale(1.1); !* Лёгкое увеличение *!*/
-/*}*/
 
 
 

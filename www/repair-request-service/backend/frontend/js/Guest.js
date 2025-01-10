@@ -2,7 +2,7 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
     event.preventDefault();
 
     const inventoryNumber = document.getElementById('inventoryNumber').value;
-    const guestDepartment = document.getElementById('guestDepartment').value;
+    const guestDepartment = document.getElementById('guestDepartmentSearch').value;
     const guestPhoneNumber = document.getElementById('guestPhoneNumber').value;
     const descriptionOfTheProblem = document.getElementById('descriptionOfTheProblem').value;
 
@@ -38,4 +38,55 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
         showAlert(`Произошла ошибка при отправке: ${error.message}`);
     }
 
+});
+$(document).ready(function () {
+    const apiUrl = `${window.config.apiUrl}/api/departments/names`;
+
+    // Загружаем данные из API
+    $.ajax({
+        url: apiUrl,
+        method: 'GET',
+        dataType: 'json',
+        success: function (data) {
+            const departmentList = $('#guestDepartmentList');
+            data.forEach(department => {
+                departmentList.append(`
+                    <li>
+                        <button class="dropdown-item" type="button" data-value="${department}">${department}</button>
+                    </li>
+                `);
+            });
+
+            // Обработчик выбора элемента
+            departmentList.on('click', '.dropdown-item', function () {
+                const selectedText = $(this).text();
+                $('#guestDepartmentSearch').val(selectedText);
+                departmentList.hide(); // Скрываем выпадающий список
+            });
+
+            // Показываем список при фокусе на поле
+            $('#guestDepartmentSearch').on('focus', function () {
+                departmentList.show();
+            });
+
+            // Фильтрация списка при вводе
+            $('#guestDepartmentSearch').on('input', function () {
+                const searchText = $(this).val().toLowerCase();
+                departmentList.children('li').each(function () {
+                    const itemText = $(this).text().toLowerCase();
+                    $(this).toggle(itemText.includes(searchText));
+                });
+            });
+
+            // Скрываем список при клике вне
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    departmentList.hide();
+                }
+            });
+        },
+        error: function (error) {
+            console.error('Ошибка загрузки данных:', error);
+        }
+    });
 });

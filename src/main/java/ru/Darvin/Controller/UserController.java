@@ -42,7 +42,8 @@ public class UserController {
     }
 
     // Метод для получения списка всех пользователей
-    @GetMapping
+    @Operation(summary = "Получить всех пользователей")
+    @GetMapping("/getAll")
     public List<UserInfoDTO> getAllUsers() {
         return userService.getAllUsers();
     }

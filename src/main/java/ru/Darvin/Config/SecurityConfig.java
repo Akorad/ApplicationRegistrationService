@@ -44,7 +44,7 @@ public class SecurityConfig {
 //                        .requestMatchers("/api/guest/**").hasAuthority("GUEST")
 //                        .anyRequest().authenticated()
                         // Открытый доступ
-                        .requestMatchers("/auth/**", "/images/**","/wp-admin/**").permitAll()
+                        .requestMatchers("/auth/**", "/images/**","/wp-admin/**","/api/departments/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
 
                         //доступ для гостя
@@ -52,12 +52,13 @@ public class SecurityConfig {
 
                         // Доступ для администраторов
                         .requestMatchers("/api/equipments/**", "/api/tickets/update",
-                                "/api/admin/test-email", "/supplies/**").hasAuthority("ADMIN")
+                                "/api/admin/test-email", "api/supplies/**","/api/users/getAll").hasAuthority("ADMIN")
 
                         // Доступ для аутентифицированных пользователей
                         .requestMatchers("/api/tickets/userUpdate", "/api/tickets/create",
                                 "/api/tickets/summary", "/api/tickets/info/**", "/api/supplies/mol/**",
-                                "/api/tickets/delete/**", "/api/html/tickets/info/**","/api/tickets/print/**").authenticated()
+                                "/api/tickets/delete/**", "/api/html/tickets/info/**","/api/tickets/print/**",
+                                "/api/users/**").authenticated()
 
                         // Все остальные запросы требуют роли ADMIN
                         .anyRequest().hasAuthority("ADMIN")  // Все остальные запросы требуют роли ADMIN

@@ -20,4 +20,6 @@ public interface UserMapperImpl {
     UserInfoDTO maptoInfoDTO (User user);
 
     UserUpdateDto mapToUserUpdateDto (User user);
+
+    User user (User user);
 }

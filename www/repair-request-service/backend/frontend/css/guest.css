@@ -39,3 +39,17 @@ h2 {
     text-align: center;       /* Выравнивание текста по центру */
     margin-bottom: 0px;
 }
+
+.select2-dropdown {
+    margin-top: -22px; /* Поднимите выпадающий список, чтобы он прилегал к селекту */
+    margin-left: 4px;
+}
+
+.dropdown-menu {
+    max-height: 200px; /* Ограничиваем высоту выпадающего списка */
+    overflow-y: auto; /* Добавляем прокрутку, если список длинный */
+}
+.dropdown-item.active {
+    background-color: #0d6efd; /* Стиль активного элемента */
+    color: white;
+}

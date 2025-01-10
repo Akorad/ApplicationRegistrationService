@@ -26,11 +26,9 @@ public class SuppliesService {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private static final String filePath = "src/main/source/stock.json";
     private final SuppliesRepository suppliesRepository;
-    private final TicketRepository ticketRepository;
 
-    public SuppliesService(SuppliesRepository suppliesRepository, TicketRepository ticketRepository) {
+    public SuppliesService(SuppliesRepository suppliesRepository) {
         this.suppliesRepository = suppliesRepository;
-        this.ticketRepository = ticketRepository;
     }
 
     //Поиск расходных материалов по номенклатурному коду

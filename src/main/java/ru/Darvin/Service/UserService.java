@@ -62,23 +62,15 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
     public String updateUser(String userName, UserUpdateDto userUpdateDto) {
         User currentUser = getCurrentUser();
 
-        if (!currentUser.getRole().equals(Role.ADMIN) && !currentUser.getUsername().equals(userName)) {
-            throw new AccessDeniedException("У вас нет прав на редактирование этого пользователя.");
+        if (!currentUser.getRole().equals(Role.ADMIN)) {
+            throw new AccessDeniedException("У вас нет прав на редактирование пользователя.");
         }
 
         User user = getByUsername(userName);
-        User updatedUser = UserMapperImpl.INSTANCE.maptoUpdateUser(userUpdateDto);
 
-        updatedUser.setId(user.getId());
-        updatedUser.setUsername(user.getUsername());
-        updatedUser.setPassword(user.getPassword());
-        updatedUser.setRole(user.getRole());
+        user.setRole(userUpdateDto.getRole());
 
-        if (currentUser.getRole().equals(Role.ADMIN)) {
-            updatedUser.setRole(userUpdateDto.getRole());
-        }
-
-        userRepository.save(updatedUser);
+        userRepository.save(user);
         return "Пользователь " + userName + " успешно обновлен.";
     }
 

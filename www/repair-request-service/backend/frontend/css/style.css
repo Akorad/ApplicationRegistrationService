@@ -7,6 +7,7 @@ body {
     font-size: 14px;
     line-height: 1.5;
     color: #333;
+    background: url("https://lk.ulstu.ru/img/background.png") center/cover no-repeat fixed !important;
 }
 
 .container {
@@ -317,6 +318,10 @@ span {
     margin-bottom: 20px;
 }
 
+#filterPanel {
+    height: max-content;
+}
+
 #closeFilterButton {
     display: block;
 }
@@ -330,7 +335,8 @@ span {
 #alertContainer {
     z-index: 1060; /* Устанавливаем z-index выше, чем у модальных окон */
 }
-.closed-ticket {
-    background-color: gray !important; /* Серый фон */
-    color: white !important;          /* Белый текст */
+/* Для таблицы с классом .closed-ticket, все строки с этим классом получат серый фон */
+.closed-ticket td {
+    background-color: gray !important; /* Серый фон для всех ячеек в закрытой заявке */
+    color: white !important;           /* Белый цвет текста */
 }

@@ -40,7 +40,7 @@
         <td class='first'  style='hyphens: auto;'>[[${department[0]}]]<br></td>
         <td class='first'>[[${ticket.equipment.inventoryNumber}]]</td>
         <td class='first'>[[${#temporals.format(ticket.createdDate, 'dd.MM.yyyy HH:mm')}]]</td>
-        <td class='first'><br></td>
+        <td class='first'>[[${#temporals.format(ticket.createdDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
     </tr>
     <tr>
         <td class='first'  style='hyphens: auto;'>[[${department[1]}]]<br></td>
@@ -144,8 +144,8 @@
     <tr>
         <td><br></td>
         <td><br></td>
-        <td>[[${#temporals.format(ticket.endDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
         <td><br></td>
+        <td>[[${#temporals.format(ticket.endDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
     </tr>
     <tr>
         <td><br></td>

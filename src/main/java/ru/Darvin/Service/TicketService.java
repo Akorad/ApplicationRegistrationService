@@ -132,8 +132,8 @@ public class TicketService {
         Ticket ticket = ticketRepository.findByTicketNumber(ticketUpdateDTO.getTicketNumber())
                 .orElseThrow(() -> new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " не найдена"));
 
-        if (ticket.getStatus() == CLOSED && ticketUpdateDTO.getStatus() != CLOSED) {
-            throw new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " уже закрыта и её статус изменить нельзя");
+        if (ticket.getStatus() == CLOSED) {
+            throw new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " уже закрыта и её изменить нельзя");
         }
 
         // Установка основных полей заявки
@@ -205,6 +205,11 @@ public class TicketService {
     public void deleteTicket (Long ticketNumber){
         Ticket ticket = ticketRepository.findByTicketNumber(ticketNumber)
                 .orElseThrow(()-> new RuntimeException("Заявка с ID " + ticketNumber + " не найдена"));
+
+        //проверка на статус
+        if (ticket.getStatus().equals(CLOSED)){
+            throw new RuntimeException("Заявка с номером " + ticket.getTicketNumber() + " уже закрыта и её удалить нельзя");
+        }
 
         //Пользователь удаляющий заявку
         User currentUser  = userService.getCurrentUser();

@@ -24,7 +24,8 @@ function processURLToken() {
     const token = urlParams.get('token');
     if (token) {
         saveToken(token);
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname); // Очищаем URL от токена
+        location.reload(); // Перезагружаем страницу
     }
 }
 

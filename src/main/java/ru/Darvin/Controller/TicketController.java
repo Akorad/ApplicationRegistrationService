@@ -18,6 +18,9 @@ import ru.Darvin.Repository.TicketRepository;
 import ru.Darvin.Service.PdfService;
 import ru.Darvin.Service.TicketService;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/tickets")
@@ -45,10 +48,10 @@ public class TicketController {
 
     @Operation(summary = "Обновить заявку пользователя", description = "Обновляет заявку созданной пользователем на ремонт")
     @PutMapping("/userUpdate")
-    public ResponseEntity<Ticket> updateTicket(@RequestBody TicketUpdateUserDTO ticketUpdateUserDTO) {
+    public ResponseEntity<?> updateTicket(@RequestBody TicketUpdateUserDTO ticketUpdateUserDTO) {
         Ticket updatedUserTicket = ticketService.updateUserTicket(ticketUpdateUserDTO);
 
-        return ResponseEntity.ok(updatedUserTicket);
+        return ResponseEntity.ok(Map.of("message", "Заявка успешно обновлена."));
     }
 
     @Operation(summary = "Удалить заявку", description = "Удаляет заявку на ремонт")
@@ -107,6 +110,13 @@ public class TicketController {
         }
     }
 
+    @Operation(summary = "Информация о прошлых обращениях", description = "Предоставляет подробную информацию о прошлых обращениях по инвентарному номеру")
+    @GetMapping("/history/{inventoryNumber}")
+    public ResponseEntity<List<TicketInfoDTO>> getInfoTicket(@PathVariable String inventoryNumber) {
+        List <TicketInfoDTO> ticketInfoDTO = ticketService.getTicketHistoryByInventoryNumber(inventoryNumber);
+
+        return ResponseEntity.ok(ticketInfoDTO);
+    }
 }
 
 

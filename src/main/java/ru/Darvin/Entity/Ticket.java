@@ -67,4 +67,10 @@ public class Ticket {
 
     @Column(nullable = true)
     private String guestDepartment;     // Отдел гостя
+
+    @Column(nullable = true)
+    private String userPhoneNumber;    // Номер телефона пользователя
+
+    @Column(nullable = true)
+    private String userDepartment;     // Отдел пользователя
 }

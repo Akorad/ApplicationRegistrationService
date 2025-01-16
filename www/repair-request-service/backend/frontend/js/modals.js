@@ -1,4 +1,3 @@
-// Открытие модального окна с информацией о заявке
 function openModal(ticketNumber) {
     fetch(`${window.config.apiUrl}/api/html/tickets/info/${ticketNumber}`, {
         headers: {
@@ -12,12 +11,38 @@ function openModal(ticketNumber) {
             return response.text();
         })
         .then(html => {
-            document.getElementById('modalContainer').innerHTML = html; // Обновление содержимого контейнера
-            $('#ticketInfoModal').modal('show'); // Показываем модальное окно
+            // Обновление содержимого контейнера
+            const modalContainer = document.getElementById('modalContainer');
+            modalContainer.innerHTML = html;
+
+            // Инициализация модального окна
+            const modalElement = document.getElementById('ticketInfoModal');
+            const modal = new bootstrap.Modal(modalElement);
+
+            // Показываем модальное окно
+            modal.show();
+
+            // Скрываем поле поиска материалов для неадминистраторов
             const userRole = localStorage.getItem('userRole'); // Или декодирование из токена, если требуется
             if (userRole !== 'ADMIN') {
                 document.getElementById("supplySearchInput").style.display = "none";
             }
+
+            // Обработчик события закрытия модального окна
+            modalElement.addEventListener('hidden.bs.modal', function () {
+                // Сбрасываем фокус перед закрытием
+                document.activeElement.blur(); // Снимаем фокус с текущего элемента
+
+                // Удаляем все modal-backdrop
+                const backdrops = document.querySelectorAll('.modal-backdrop.fade.show');
+                backdrops.forEach(backdrop => backdrop.remove());
+
+                // Удаляем модальное окно из DOM
+                modalElement.remove();
+
+                // Очищаем контейнер
+                modalContainer.innerHTML = '';
+            });
         })
         .catch(error => console.error('Ошибка:', error));
 }
@@ -31,7 +56,7 @@ async function deleteTicket(ticketNumber) {
                 'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
         });
-
+1
         if (response.ok) {
             showAlert("Заявка успешно удалена");
             $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
@@ -50,7 +75,7 @@ async function deleteTicket(ticketNumber) {
 
 
 //обновление для пользователя
-async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber) {
+async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber) {
     try {
         const response = await fetch(`${window.config.apiUrl}/api/tickets/userUpdate`, {
             method: "POST",
@@ -61,7 +86,9 @@ async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNu
             body: JSON.stringify({
                 ticketNumber,
                 descriptionOfTheProblem,
-                inventoryNumber
+                inventoryNumber,
+                userDepartment,
+                userPhoneNumber
             })
         });
 
@@ -83,14 +110,19 @@ async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNu
 
 
 //обновления для администратора
-async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies) {
+async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies,
+                               descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber) {
     const payload = {
         ticketNumber,
         detectedProblem,
         comments,
         typeOfWork,
         status,
-        supplies
+        supplies,
+        descriptionOfTheProblem,
+        inventoryNumber,
+        userDepartment,
+        userPhoneNumber
     };
     try {
         const response = await fetch(`${window.config.apiUrl}/api/tickets/update`, {
@@ -114,7 +146,8 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
         }
     } catch (error) {
         console.error("Ошибка выполнения запроса:", error);
-        showAlert("Ошибка выполнения запроса. Проверьте соединение с сервером.");
+        showAlert(`Ошибка выполнения запроса: ${error}`);
+
     }
 }
 
@@ -123,6 +156,116 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Привязываем обработчики после появления модального окна
     $(document).on('shown.bs.modal', '#ticketInfoModal', function () {
+
+        const showHistoryButton = document.getElementById('showHistoryButton');
+        const historyTableContainer = document.getElementById('historyTableContainer');
+        const historyTableBody = document.getElementById('historyTableBody');
+
+        let isExpanded = false; // Флаг для отслеживания состояния кнопки и таблицы
+
+        // Обработчик нажатия на кнопку "История заявок"
+        showHistoryButton.addEventListener('click', function () {
+            if (isExpanded) {
+                // Если таблица уже открыта, скрываем её
+                historyTableContainer.classList.remove('expanded');
+                showHistoryButton.classList.remove('expanded');
+
+            } else {
+                // Если таблица закрыта, показываем её
+                const inventoryNumber = document.getElementById('inventoryNumber').value;
+
+                // Выполняем запрос к API
+                fetch(`${window.config.apiUrl}/api/tickets/history/${inventoryNumber}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` // Получаем токен из localStorage
+                    }
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Ошибка при получении истории заявок');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Очищаем таблицу перед добавлением новых данных
+                        historyTableBody.innerHTML = '';
+
+                        // Добавляем строки в таблицу
+                        data.forEach(ticket => {
+                            const row = document.createElement('tr');
+
+                            // Номер заявки
+                            const ticketNumberCell = document.createElement('td');
+                            ticketNumberCell.textContent = ticket.ticketNumber;
+                            row.appendChild(ticketNumberCell);
+
+                            // Дата создания
+                            const createdDateCell = document.createElement('td');
+                            createdDateCell.textContent = formatDate(ticket.createdDate);
+                            row.appendChild(createdDateCell);
+
+                            // Дата закрытия
+                            const endDateCell = document.createElement('td');
+                            endDateCell.textContent = ticket.endDate ? formatDate(ticket.endDate) : '—';
+                            row.appendChild(endDateCell);
+
+                            // Использованные материалы
+                            const suppliesCell = document.createElement('td');
+                            if (ticket.supplies && ticket.supplies.length > 0) {
+                                const suppliesList = ticket.supplies.map(supply => {
+                                    const dateOfUse = formatDate(supply.dateOfUse);
+                                    return `${supply.nomenclature} (${supply.quantity} шт., ${dateOfUse})`;
+                                }).join('<br>'); // Каждый материал с новой строки
+                                suppliesCell.innerHTML = suppliesList; // Используем innerHTML для поддержки <br>
+                            } else {
+                                suppliesCell.textContent = '—';
+                            }
+                            row.appendChild(suppliesCell);
+
+                            // Кнопка "Открыть заявку"
+                            const actionsCell = document.createElement('td');
+                            const openButton = document.createElement('button');
+                            openButton.textContent = 'Открыть заявку';
+                            openButton.className = 'btn btn-primary btn-sm';
+                            openButton.onclick = () => openModal(ticket.ticketNumber);
+                            actionsCell.appendChild(openButton);
+                            row.appendChild(actionsCell);
+
+                            // Добавляем строку в таблицу
+                            historyTableBody.appendChild(row);
+                        });
+
+                        // Показываем таблицу с анимацией
+                        historyTableContainer.style.display = 'block';
+                        setTimeout(() => {
+                            historyTableContainer.classList.add('expanded');
+                        }, 10); // Небольшая задержка для корректного запуска анимации
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                        alert('Не удалось загрузить историю заявок');
+                    });
+
+                // Растягиваем кнопку
+                showHistoryButton.classList.add('expanded');
+            }
+
+            // Меняем состояние флага
+            isExpanded = !isExpanded;
+        });
+        // Функция для форматирования даты в формат "дд.мм.гг, чч:мм"
+        function formatDate(dateString) {
+            if (!dateString) return '—';
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = String(date.getFullYear()).slice(-2);
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}.${month}.${year}, ${hours}:${minutes}`;
+        }
+
 
         // Инициализация кнопок только после появления модального окна
         const saveButton = document.getElementById("saveButton");
@@ -139,11 +282,18 @@ document.addEventListener("DOMContentLoaded", function () {
                     const typeOfWork = document.getElementById("typeOfWork").value;
                     const status = document.getElementById("modalStatus").value;
                     const supplies = getSupplies(); // Функция для сбора данных по материалам
-                    saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies);
+                    const descriptionOfTheProblem = document.getElementById("descriptionOfTheProblem").value;
+                    const inventoryNumber = document.getElementById("inventoryNumber").value;
+                    const userDepartment = document.getElementById("department").value;
+                    const userPhoneNumber = document.getElementById("phoneNumber").value;
+                    saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies,
+                        descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber);
                 } else {
                     const descriptionOfTheProblem = document.getElementById("descriptionOfTheProblem").value;
                     const inventoryNumber = document.getElementById("inventoryNumber").value;
-                    saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber);
+                    const userDepartment = document.getElementById("department").value;
+                    const userPhoneNumber = document.getElementById("phoneNumber").value;
+                    saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber);
                 }
             });
         }

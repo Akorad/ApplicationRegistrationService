@@ -50,15 +50,15 @@ public class SecurityConfig {
                         //доступ для гостя
                         .requestMatchers("/api/guest/**").hasAuthority("GUEST")
 
-                        // Доступ для администраторов
-                        .requestMatchers("/api/equipments/**", "/api/tickets/update",
-                                "/api/admin/test-email", "api/supplies/**","/api/users/getAll").hasAuthority("ADMIN")
-
                         // Доступ для аутентифицированных пользователей
                         .requestMatchers("/api/tickets/userUpdate", "/api/tickets/create",
                                 "/api/tickets/summary", "/api/tickets/info/**", "/api/supplies/mol/**",
                                 "/api/tickets/delete/**", "/api/html/tickets/info/**","/api/tickets/print/**",
                                 "/api/users/**").authenticated()
+
+                        // Доступ для администраторов
+                        .requestMatchers("/api/equipments/**", "/api/tickets/update",
+                                "/api/admin/test-email", "api/supplies/**","/api/users/getAll").hasAuthority("ADMIN")
 
                         // Все остальные запросы требуют роли ADMIN
                         .anyRequest().hasAuthority("ADMIN")  // Все остальные запросы требуют роли ADMIN

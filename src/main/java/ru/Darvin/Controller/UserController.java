@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.Darvin.DTO.UserDTO;
 import ru.Darvin.DTO.UserInfoDTO;
+import ru.Darvin.DTO.UserTicketInfo;
 import ru.Darvin.DTO.UserUpdateDto;
 import ru.Darvin.Entity.User;
 import ru.Darvin.Service.UserService;
@@ -46,5 +47,12 @@ public class UserController {
     @GetMapping("/getAll")
     public List<UserInfoDTO> getAllUsers() {
         return userService.getAllUsers();
+    }
+
+    // Метод для получения информации для заполнения заявки
+    @Operation(summary = "Получить информацию для заполнения заявки")
+    @GetMapping("/getTicketInfo")
+    public UserTicketInfo getTicketInfo() {
+        return userService.getTicketInfo();
     }
 }

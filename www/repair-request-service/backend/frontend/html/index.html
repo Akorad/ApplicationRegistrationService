@@ -28,7 +28,7 @@
                     data-bs-target="#inventoryCheckModal">
                 Проверка по инвентарному номеру
             </button>
-            <button class="btn btn-primary btn-create" data-bs-toggle="modal" data-bs-target="#createTicketModal">
+            <button class="btn btn-primary btn-create" onclick="getTicketInfo()" data-bs-toggle="modal" data-bs-target="#createTicketModal">
                 <i class="fa fa-plus-circle"></i> Создать заявку
             </button>
         </div>
@@ -119,12 +119,22 @@
 <div class="modal fade" id="createTicketModal" tabindex="-1" aria-labelledby="createTicketModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header ">
+            <div class="modal-header">
                 <h5 class="modal-title" id="createTicketModalLabel">Создать заявку</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
             </div>
             <div class="modal-body">
                 <form id="createTicketForm">
+                    <div class="mb-3">
+                        <label for="departmentSelect" class="form-label">Департамент</label>
+                        <select class="form-select" id="departmentSelect" name="departmentSelect" required>
+                            <!-- Опции будут заполнены через JS -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="phoneNumber" class="form-label">Номер телефона</label>
+                        <input type="text" class="form-control" id="phoneNumberSelect" name="phoneNumberSelect" required autocomplete="off">
+                    </div>
                     <div class="mb-3">
                         <label for="inventoryNumberCreate" class="form-label">Инвентарный номер</label>
                         <input type="text" class="form-control" id="inventoryNumberCreate" name="inventoryNumber" required autocomplete="off">

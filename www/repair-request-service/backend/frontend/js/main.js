@@ -36,6 +36,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         // Собираем данные вручную для отправки в формате JSON
         const ticketData = {
+            department: createTicketForm.querySelector('[name="departmentSelect"]').value,
+            phoneNumber: createTicketForm.querySelector('[name="phoneNumberSelect"]').value,
             descriptionOfTheProblem: createTicketForm.querySelector('[name="descriptionOfTheProblem"]').value,
             equipment: {
                 inventoryNumber: createTicketForm.querySelector('[name="inventoryNumber"]').value

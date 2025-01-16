@@ -158,7 +158,21 @@
     opacity: 1; /* Полная непрозрачность при наведении */
 }
 
+.dropdown-menu {
+    width: 100%; /* Ширина списка равна ширине поля ввода */
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
 
+.dropdown-item {
+    padding: 8px 16px;
+    cursor: pointer;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
 
 
 

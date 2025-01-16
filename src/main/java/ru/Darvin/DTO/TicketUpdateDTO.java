@@ -14,6 +14,11 @@ public class TicketUpdateDTO {
     private TicketType status;                  // Статус заявки
     private List<SuppliesDTO> supplies;         // Материалы
 
+    private String descriptionOfTheProblem;     //описание неисправности
+    private String inventoryNumber;             //инвентарный номер
+    private String userDepartment;                  //Наименование отдела в котором работает
+    private String userPhoneNumber;                 //Номер телефона
+
     @Data
     public static class SuppliesDTO {
         private String nomenclatureCode;         // ID номенклатуры

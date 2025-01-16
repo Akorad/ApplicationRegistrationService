@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import ru.Darvin.DTO.LdapUserDetails;
 import ru.Darvin.DTO.Mapper.UserMapperImpl;
 import ru.Darvin.DTO.UserInfoDTO;
+import ru.Darvin.DTO.UserTicketInfo;
 import ru.Darvin.DTO.UserUpdateDto;
 import ru.Darvin.Entity.Role;
 import ru.Darvin.Entity.User;
@@ -196,5 +197,13 @@ public class UserService implements OAuth2UserService<OAuth2UserRequest, OAuth2U
 
         // Сохраняем пользователя в базе данных
         userRepository.save(user);
+    }
+
+    public UserTicketInfo getTicketInfo() {
+        User currentUser = getCurrentUser();
+        UserTicketInfo userTicketInfo = new UserTicketInfo();
+        userTicketInfo.setDepartment(currentUser.getDepartment());
+        userTicketInfo.setPhoneNumber(currentUser.getPhoneNumber());
+        return userTicketInfo;
     }
 }

@@ -67,6 +67,8 @@ public class TicketService {
         ticket.setCreatedDate(LocalDateTime.now());
         ticket.setStatus(TicketType.CREATED);
         ticket.setEquipment(equipment);
+        ticket.setUserPhoneNumber(ticketCreateDTO.getPhoneNumber());
+        ticket.setUserDepartment(ticketCreateDTO.getDepartment());
 
         //Получение текущего пользователя из контекста безопасности
         User user = userService.getCurrentUser();
@@ -114,6 +116,10 @@ public class TicketService {
         Ticket ticket = ticketRepository.findByTicketNumber(ticketUpdateUserDTO.getTicketNumber())
                 .orElseThrow(()-> new RuntimeException("Заявка с номером " + ticketUpdateUserDTO.getTicketNumber() + " не найдена"));
 
+        User user = userService.getCurrentUser();
+        if (ticket.getUser() != user)
+            throw new RuntimeException("Вы не можете редактировать заявку созданную другим пользователем");
+
         if (ticket.getStatus() != CREATED)
             throw new RuntimeException("Заявка с номером " + ticketUpdateUserDTO.getTicketNumber() + " уже принята и изменить нельзя");
 
@@ -123,7 +129,8 @@ public class TicketService {
 
         ticket.setDescriptionOfTheProblem(ticketUpdateUserDTO.getDescriptionOfTheProblem());
         ticket.setEquipment(equipment);
-
+        ticket.setUserDepartment(ticketUpdateUserDTO.getDepartment());
+        ticket.setUserPhoneNumber(ticketUpdateUserDTO.getPhoneNumber());
         return ticketRepository.save(ticket);
     }
 
@@ -135,6 +142,25 @@ public class TicketService {
         if (ticket.getStatus() == CLOSED) {
             throw new RuntimeException("Заявка с номером " + ticketUpdateDTO.getTicketNumber() + " уже закрыта и её изменить нельзя");
         }
+
+        //Обновление данных пользователя
+            // Поиск или создание оборудования
+            Equipment equipment = findOrCreateEquipment(ticketUpdateDTO.getInventoryNumber());
+
+            ticket.setDescriptionOfTheProblem(ticketUpdateDTO.getDescriptionOfTheProblem());
+            ticket.setEquipment(equipment);
+
+            // Проверка на null и пустую строку
+            if (ticket.getGuestDepartment() == null || ticket.getGuestDepartment().isEmpty()) {
+                // Если guestDepartment пустое, обновляем userDepartment и userPhoneNumber
+                ticket.setUserDepartment(ticketUpdateDTO.getUserDepartment());
+                ticket.setUserPhoneNumber(ticketUpdateDTO.getUserPhoneNumber());
+            } else {
+                // Если guestDepartment не пустое, обновляем guestDepartment и guestPhoneNumber
+                ticket.setGuestDepartment(ticketUpdateDTO.getUserDepartment());
+                ticket.setGuestPhoneNumber(ticketUpdateDTO.getUserPhoneNumber());
+            }
+
 
         // Установка основных полей заявки
         ticket.setDetectedProblem(ticketUpdateDTO.getDetectedProblem());
@@ -167,7 +193,6 @@ public class TicketService {
     public TicketInfoDTO getTicketInfo(Long ticketNumber){
         Ticket ticket = ticketRepository.findByTicketNumber(ticketNumber)
                 .orElseThrow(()-> new RuntimeException("Заявка с номером " + ticketNumber + " не найдена"));
-        System.out.println(ticket.getGuestDepartment());
         return TicketMapperImpl.INSTANCE.mapToInfoDTO(ticket);
     }
 
@@ -249,20 +274,37 @@ public class TicketService {
 
     //проверка статуса заявки по инвентарному номеру
     private void checkExistingTicket(String inventoryNumber) {
-        ticketRepository.findByEquipmentInventoryNumber(inventoryNumber).ifPresent(ticket -> {
-            if (ticket.getStatus() != CLOSED) {
-                throw new RuntimeException("Заявка с инвентарным номером " + inventoryNumber + " уже находится в работе");
+        if (inventoryNumber != null && !inventoryNumber.equals("б/н")) {
+            List<Ticket> tickets = ticketRepository.findByEquipmentInventoryNumberOrderByCreatedDateDesc(inventoryNumber);
+
+            if (!tickets.isEmpty()) {
+                // Проверяем, есть ли незакрытые заявки
+                boolean hasOpenTicket = tickets.stream()
+                        .anyMatch(ticket -> ticket.getStatus() != CLOSED);
+
+                if (hasOpenTicket) {
+                    throw new RuntimeException("Заявка с инвентарным номером " + inventoryNumber + " уже находится в работе");
+                }
             }
-        });
+        }
     }
 
     //поиск техники в базе по инвентарному номеру
     public Equipment findOrCreateEquipment(String inventoryNumber) {
+        // Если инвентарный номер равен "б/н" или отсутствует, создаем новую запись
+        if (inventoryNumber == null || inventoryNumber.trim().isEmpty() || inventoryNumber.equals("б/н")) {
+            Equipment newEquipment = new Equipment();
+            newEquipment.setInventoryNumber("б/н"); // Указываем, что это техника без инвентарного номера
+            newEquipment.setAssetName("Техника без инвентарного номера"); // Указываем имя по умолчанию
+            return equipmentRepository.save(newEquipment);
+        }
+
+        // Поиск существующей техники по инвентарному номеру
         return equipmentRepository.findByInventoryNumber(inventoryNumber)
                 .orElseGet(() -> {
                     EquipmentDTO equipmentDTO = equipmentService.findEquipmentByInventoryNumber(inventoryNumber);
                     if (equipmentDTO == null) {
-                        throw new RuntimeException("Техника с инвентарным номером "+ inventoryNumber +" не найдена");
+                        throw new RuntimeException("Техника с инвентарным номером " + inventoryNumber + " не найдена");
                     }
                     Equipment newEquipment = EquipmentMapperImpl.INSTANCE.mapToEntity(equipmentDTO);
                     return equipmentRepository.save(newEquipment);
@@ -314,6 +356,16 @@ public class TicketService {
                 throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены");
             }
         }
+    }
+
+    public List<TicketInfoDTO> getTicketHistoryByInventoryNumber(String inventoryNumber) {
+        // Поиск всех заявок по инвентарному номеру
+        List<Ticket> tickets = ticketRepository.findByEquipmentInventoryNumberOrderByCreatedDateDesc(inventoryNumber);
+
+        // Преобразование заявок в DTO с использованием маппера
+        return tickets.stream()
+                .map(TicketMapperImpl.INSTANCE::mapToInfoDTO)
+                .collect(Collectors.toList());
     }
 
 }

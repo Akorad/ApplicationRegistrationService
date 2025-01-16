@@ -63,7 +63,7 @@
                                     type="text"
                                     class="form-control"
                                     id="department"
-                                    th:value="${!#strings.isEmpty(ticket.user.department) ? ticket.user.department : ticket.guestDepartment}">
+                                    th:value="${!#strings.isEmpty(ticket.guestDepartment) ? ticket.guestDepartment : ticket.userDepartment}">
                         </div>
 
                         <!-- Номер телефона -->
@@ -73,7 +73,7 @@
                                     type="text"
                                     class="form-control"
                                     id="phoneNumber"
-                                    th:value="${!#strings.isEmpty(ticket.user.phoneNumber) ? ticket.user.phoneNumber : ticket.guestPhoneNumber}">
+                                    th:value="${!#strings.isEmpty(ticket.guestPhoneNumber) ? ticket.guestPhoneNumber : ticket.userPhoneNumber}">
                         </div>
                     </div>
 
@@ -136,6 +136,29 @@
                             <!-- Список выбранных материалов -->
                         </div>
                     </div>
+                    <!-- Кнопка для отображения истории заявок -->
+                    <div th:if="${user.role == T(ru.Darvin.Entity.Role).ADMIN}">
+                        <button type="button" id="showHistoryButton" class="btn btn-info">История заявок</button>
+                    </div>
+
+                    <!-- Контейнер для таблицы истории заявок -->
+                    <div class="table-responsive" id="historyTableContainer" style="display: none; overflow: hidden;">
+                        <table class="table table-bordered">
+                            <thead>
+                            <tr>
+                                <th>Номер заявки</th>
+                                <th>Дата создания</th>
+                                <th>Дата закрытия</th>
+                                <th>Использованные материалы</th>
+                                <th>Действия</th>
+                            </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                            <!-- Строки таблицы будут добавлены с помощью JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
             <div class="modal-footer justify-content-between">

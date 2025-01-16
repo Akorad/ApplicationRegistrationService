@@ -27,6 +27,4 @@ public class SecurityController {
     public TokenResponse signIn(@RequestBody SignInRequest request) {
         return authenticationService.signIn(request);
     }
-
-
 }

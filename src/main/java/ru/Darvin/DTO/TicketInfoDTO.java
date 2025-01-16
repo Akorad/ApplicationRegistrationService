@@ -22,6 +22,8 @@ public class TicketInfoDTO {
     private UserDTO editorUser;                 //ссылка на редактирующего заявку пользователя
     private String guestPhoneNumber;            //Номер телефона гостя
     private String guestDepartment;             //Отдел гостя
+    private String userPhoneNumber;             //Номер телефона пользователя
+    private String userDepartment;              //Отдел пользователя
 
 
     private Equipment equipment;                //ссылка на оборудование

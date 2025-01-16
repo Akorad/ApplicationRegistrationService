@@ -18,6 +18,9 @@
                     <h1 class="mb-4">Расходные материалы</h1>
                 </div>
                 <div class="col text-end">
+                    <button class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#issueListModal">
+                        Список расхода по МОЛ
+                    </button>
                     <button class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#dateFilterModal">
                         Список расхода по дате
                     </button>
@@ -90,40 +93,40 @@
                         <!-- Форма по инвентарному номеру -->
                         <form id="byInventoryForm" >
                             <div class="mb-3">
-                                <label for="inventoryNumber" class="form-label">Инвентарный номер</label>
-                                <input type="text" class="form-control" id="inventoryNumber" required>
+                                <label for="inventoryNumberCreate" class="form-label">Инвентарный номер</label>
+                                <input type="text" class="form-control" id="inventoryNumberCreate" required>
                             </div>
                             <div class="mb-3">
-                                <label for="nomenclatureCodeInventory" class="form-label hidden">Код номенклатуры</label>
-                                <input type="text" class="form-control hidden" id="nomenclatureCodeInventory" required>
+                                <label for="nomenclatureCodeInventoryCreate" class="form-label hidden">Код номенклатуры</label>
+                                <input type="text" class="form-control hidden" id="nomenclatureCodeInventoryCreate" required>
                             </div>
                             <div class="mb-3">
-                                <label for="quantityInventory" class="form-label">Количество</label>
-                                <input type="number" class="form-control" id="quantityInventory" min="1" required>
+                                <label for="quantityInventoryCreate" class="form-label">Количество</label>
+                                <input type="number" class="form-control" id="quantityInventoryCreate" min="1" required>
                             </div>
                             <div class="mb-3">
-                                <label for="commentInventory" class="form-label">Комментарий</label>
-                                <textarea class="form-control" id="commentInventory" rows="2"></textarea>
+                                <label for="commentInventoryCreate" class="form-label">Комментарий</label>
+                                <textarea class="form-control" id="commentInventoryCreate" rows="2"></textarea>
                             </div>
                             <button type="button" class="btn btn-success" onclick="submitByInventory()">Выдать</button>
                         </form>
                         <!-- Форма по МОЛ -->
                         <form id="byMolForm" class="hidden">
                             <div class="mb-3">
-                                <label for="molName" class="form-label">МОЛ</label>
-                                <input type="text" class="form-control" id="molName" required>
+                                <label for="molNameCreate" class="form-label">МОЛ</label>
+                                <input type="text" class="form-control" id="molNameCreate" required>
                             </div>
                             <div class="mb-3">
-                                <label for="nomenclatureCodeMol" class="form-label hidden">Код номенклатуры</label>
-                                <input type="text" class="form-control hidden" id="nomenclatureCodeMol" required>
+                                <label for="nomenclatureCodeMolCreate" class="form-label hidden">Код номенклатуры</label>
+                                <input type="text" class="form-control hidden" id="nomenclatureCodeMolCreate" required>
                             </div>
                             <div class="mb-3">
-                                <label for="quantityMol" class="form-label">Количество</label>
-                                <input type="number" class="form-control" id="quantityMol" min="1" required>
+                                <label for="quantityMolCreate" class="form-label">Количество</label>
+                                <input type="number" class="form-control" id="quantityMolCreate" min="1" required>
                             </div>
                             <div class="mb-3">
-                                <label for="commentMol" class="form-label">Комментарий</label>
-                                <textarea class="form-control" id="commentMol" rows="2"></textarea>
+                                <label for="commentMolCreate" class="form-label">Комментарий</label>
+                                <textarea class="form-control" id="commentMolCreate" rows="2"></textarea>
                             </div>
                             <button type="button" class="btn btn-success" onclick="submitByMol()">Выдать</button>
                         </form>
@@ -214,6 +217,81 @@
                 <div id="filteredMaterials" class="mt-4">
                     <p class="text-muted">Здесь появятся результаты фильтрации...</p>
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно с таблицей заявок -->
+<div class="modal fade" id="issueListModal" tabindex="-1" aria-labelledby="issueListModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="issueListModalLabel">Список заявок по МОЛ</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>№</th>
+                        <th>Кто выдал</th>
+                        <th>Кому выдал</th>
+                        <th>Наименование</th>
+                        <th>Количество</th>
+                        <th>Дата</th>
+                        <th>Комментарий</th>
+                        <th>Действия</th>
+                    </tr>
+                    </thead>
+                    <tbody id="issueTableBody">
+                    <!-- Данные будут добавлены через JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно для редактирования -->
+<div class="modal fade" id="editIssueModal" tabindex="-1" aria-labelledby="editIssueModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editIssueModalLabel">Редактирование заявки</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editIssueForm">
+                    <div class="mb-3">
+                        <label for="molName" class="form-label">МОЛ</label>
+                        <input type="text" class="form-control" id="molName" name="molName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="comment" class="form-label">Комментарий</label>
+                        <input type="text" class="form-control" id="comment" name="comment" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="supplySearch" class="form-label">Расходный материал</label>
+                        <div class="dropdown">
+                            <input type="text" id="supplySearch" class="form-control" placeholder="Поиск расходного материала..." autocomplete="off">
+                            <ul id="supplyList" class="dropdown-menu" style="display: none; max-height: 200px; overflow-y: auto;"></ul>
+                        </div>
+                        <input type="hidden" id="selectedSupplyCode" name="nomenclatureCode">
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantity" class="form-label">Количество</label>
+                        <input type="number" class="form-control" id="quantity" name="quantity" required>
+                    </div>
+                    <input type="hidden" id="molNumber" name="molNumber">
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" onclick="saveChanges()">Сохранить</button>
             </div>
         </div>
     </div>

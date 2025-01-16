@@ -343,3 +343,33 @@ span {
     background-color: gray; /* Серый фон для всех ячеек в закрытой заявке */
     color: white;           /* Белый цвет текста */
 }
+
+/* Стили для кнопки "История заявок" */
+#showHistoryButton {
+    max-width: 20px; /* Изначально кнопка занимает не более 20px */
+    min-width: fit-content; /* Минимальная ширина кнопки определяется содержимым */
+    width: 100%; /* Ширина кнопки определяется содержимым */
+    transition: max-width 0.3s ease-out; /* Анимация изменения max-width */
+    white-space: nowrap; /* Текст кнопки не переносится на новую строку */
+    overflow: hidden; /* Скрываем текст, который не помещается */
+    text-overflow: ellipsis; /* Добавляем многоточие, если текст не помещается */
+}
+
+#showHistoryButton.expanded {
+    max-width: 100%; /* После нажатия кнопка растягивается на всю ширину */
+    border-end-end-radius: 0; /* Убираем скругление нижних углов */
+    border-end-start-radius: 0; /* Убираем скругление нижних углов */
+}
+
+/* Стили для плавного разворачивания таблицы */
+#historyTableContainer {
+    max-height: 0;
+    max-width: 0;
+    overflow: hidden;
+    transition: max-height 0.5s ease-out,max-width 0.3s ease-out;;
+}
+
+#historyTableContainer.expanded {
+    max-height: 1000px; /* Максимальная высота, которую может занимать таблица */
+    max-width: 1000px;
+}

@@ -210,8 +210,8 @@ document.addEventListener("DOMContentLoaded", async function () {
     window.openIssueModal = function (nomenclatureCode) {
         const modal = new bootstrap.Modal(document.getElementById("suppliesModal"));
         // Заполняем данные формы (если нужно)
-        document.getElementById("nomenclatureCodeInventory").value = nomenclatureCode;
-        document.getElementById("nomenclatureCodeMol").value = nomenclatureCode;
+        document.getElementById("nomenclatureCodeInventoryCreate").value = nomenclatureCode;
+        document.getElementById("nomenclatureCodeMolCreate").value = nomenclatureCode;
 
         modal.show();
     };
@@ -232,13 +232,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     //функция выдачи по инвентарному номеру
     window.submitByInventory=function() {
         const request = {
-            inventoryNumber: document.getElementById("inventoryNumber").value,
-            nomenclatureCode: document.getElementById("nomenclatureCodeInventory").value,
-            comment: document.getElementById("commentInventory").value,
-            quantity: parseInt(document.getElementById("quantityInventory").value, 10),
+            inventoryNumber: document.getElementById("inventoryNumberCreate").value,
+            nomenclatureCode: document.getElementById("nomenclatureCodeInventoryCreate").value,
+            comment: document.getElementById("commentInventoryCreate").value,
+            quantity: parseInt(document.getElementById("quantityInventoryCreate").value, 10),
         };
 
-        fetch(`${window.config.apiUrl}/api/SuppliesIssue/byInventory`, {
+        fetch(`${window.config.apiUrl}/api/SuppliesIssue/create/byInventory`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -262,13 +262,13 @@ document.addEventListener("DOMContentLoaded", async function () {
     //функция выдачи по МОЛ
     window. submitByMol=function() {
         const request = {
-            molName: document.getElementById("molName").value,
-            comment: document.getElementById("commentMol").value,
-            nomenclatureCode: document.getElementById("nomenclatureCodeMol").value,
-            quantity: parseInt(document.getElementById("quantityMol").value, 10),
+            molName: document.getElementById("molNameCreate").value,
+            comment: document.getElementById("commentMolCreate").value,
+            nomenclatureCode: document.getElementById("nomenclatureCodeMolCreate").value,
+            quantity: parseInt(document.getElementById("quantityMolCreate").value, 10),
         };
 
-        fetch(`${window.config.apiUrl}/api/SuppliesIssue/byMol`, {
+        fetch(`${window.config.apiUrl}/api/SuppliesIssue/create/byMol`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -388,3 +388,208 @@ document.addEventListener("DOMContentLoaded", async function () {
     };
 
 });
+document.addEventListener("DOMContentLoaded", async function () {
+    // Загрузка данных при открытии модального окна
+    document.getElementById('issueListModal').addEventListener('shown.bs.modal', async function () {
+        await loadIssueHistory();
+    });
+
+    // Загрузка расходных материалов для выпадающего списка
+    await loadSupplies();
+});
+
+// Загрузка истории заявок
+async function loadIssueHistory() {
+    try {
+        const response = await fetch(`${window.config.apiUrl}/api/SuppliesIssue/history`, {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        if (!response.ok) throw new Error("Ошибка загрузки данных");
+        const data = await response.json();
+
+        // Очистка таблицы
+        const tableBody = document.getElementById('issueTableBody');
+        tableBody.innerHTML = '';
+
+        // Заполнение таблицы
+        data.forEach(issue => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${issue.molnumber}</td>
+                <td>${issue.user.firstName} ${issue.user.lastName}</td>
+                <td>${issue.molName}</td>
+                <td>${issue.supplies[0].nomenclature}</td>
+                <td>${issue.supplies[0].quantity}</td>
+                <td>${formatDate(issue.supplies[0].dateOfUse)}</td>
+                <td>${issue.comment}</td>
+                <td>
+                    <button class="btn btn-sm btn-warning" onclick="openEditModalIssue(${issue.molnumber})">Изменить</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteIssue(${issue.molnumber})">Удалить</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Не удалось загрузить данные");
+    }
+}
+
+// Форматирование даты
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = String(date.getFullYear()).slice(-2);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}.${month}.${year} ${hours}:${minutes}`;
+}
+
+// Загрузка расходных материалов
+async function loadSupplies() {
+    const apiUrl = `${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`;
+
+    // Загружаем данные из API
+    $.ajax({
+        url: apiUrl,
+        method: 'GET',
+        headers: {
+            "Authorization": `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json'
+        },
+        success: function (data) {
+            const supplyList = $('#supplyList');
+
+            // Очищаем список перед добавлением новых элементов
+            supplyList.empty();
+
+            // Добавляем элементы в список
+            data.forEach(supply => {
+                supplyList.append(`
+                            <li>
+                                <button class="dropdown-item" type="button" data-value="${supply.НоменклатураКод}">${supply.Номенклатура})</button>
+                            </li>
+                        `);
+            });
+
+            // Обработчик выбора элемента
+            supplyList.on('click', '.dropdown-item', function () {
+                const selectedText = $(this).text();
+                const selectedValue = $(this).data('value');
+                $('#supplySearch').val(selectedText);
+                supplyList.hide(); // Скрываем выпадающий список
+
+                // Сохраняем выбранное значение
+                $('#selectedSupplyCode').val(selectedValue);
+            });
+
+            // Показываем список при фокусе на поле
+            $('#supplySearch').on('focus', function () {
+                supplyList.show();
+            });
+
+            // Фильтрация списка при вводе
+            $('#supplySearch').on('input', function () {
+                const searchText = $(this).val().toLowerCase();
+                supplyList.children('li').each(function () {
+                    const itemText = $(this).text().toLowerCase();
+                    $(this).toggle(itemText.includes(searchText));
+                });
+            });
+
+            // Скрываем список при клике вне
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.dropdown').length) {
+                    supplyList.hide();
+                }
+            });
+        },
+        error: function (error) {
+            console.error('Ошибка загрузки данных:', error);
+            alert("Ошибка при загрузке данных. Проверьте соединение с сервером.");
+        }
+    });
+}
+
+// Открытие модального окна для редактирования
+async function openEditModalIssue(molNumber) {
+    try {
+        // Загрузка данных заявки
+        const response = await fetch(`${window.config.apiUrl}/api/SuppliesIssue/history`, {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        if (!response.ok) throw new Error("Ошибка загрузки данных");
+        const data = await response.json();
+        const issue = data.find(i => i.molnumber === molNumber);
+
+        // Заполнение формы
+        document.getElementById('molName').value = issue.molName;
+        document.getElementById('comment').value = issue.comment;
+        document.getElementById('quantity').value = issue.supplies[0].quantity;
+        document.getElementById('molNumber').value = issue.molnumber;
+
+        // Установка выбранного расходного материала
+        $('#supplySearch').val(issue.supplies[0].nomenclature);
+        $('#selectedSupplyCode').val(issue.supplies[0].nomenclatureCode);
+
+        // Открытие модального окна
+        new bootstrap.Modal(document.getElementById('editIssueModal')).show();
+    } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Не удалось загрузить данные для редактирования");
+    }
+}
+
+// Сохранение изменений
+async function saveChanges() {
+    const formData = {
+        molName: document.getElementById('molName').value,
+        comment: document.getElementById('comment').value,
+        nomenclatureCode: $('#selectedSupplyCode').val(),
+        quantity: parseInt(document.getElementById('quantity').value),
+        molnumber: parseInt(document.getElementById('molNumber').value)
+    };
+
+    try {
+        const response = await fetch(`${window.config.apiUrl}/api/SuppliesIssue/update`, {
+            method: 'PUT',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(formData)
+        });
+        if (!response.ok) throw new Error("Ошибка обновления данных");
+        alert("Заявка успешно обновлена");
+        await loadIssueHistory(); // Перезагрузка данных
+        new bootstrap.Modal(document.getElementById('editIssueModal')).hide();
+    } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Не удалось обновить заявку");
+    }
+}
+
+// Удаление заявки
+async function deleteIssue(molNumber) {
+    if (!confirm("Вы уверены, что хотите удалить заявку?")) return;
+
+    try {
+        const response = await fetch(`${window.config.apiUrl}/api/SuppliesIssue/delete/${molNumber}`, {
+            method: 'DELETE',
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            }
+        });
+        if (!response.ok) throw new Error("Ошибка удаления данных");
+        alert("Заявка успешно удалена");
+        await loadIssueHistory(); // Перезагрузка данных
+    } catch (error) {
+        console.error("Ошибка:", error);
+        alert("Не удалось удалить заявку");
+    }
+}

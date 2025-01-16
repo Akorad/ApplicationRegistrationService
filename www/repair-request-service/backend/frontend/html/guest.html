@@ -33,38 +33,30 @@
                         <!-- Инвентарный номер -->
                         <div class="mb-3">
                             <label for="inventoryNumber" class="form-label">Инвентарный номер</label>
-                            <input type="text" id="inventoryNumber" class="form-control" placeholder="Введите инвентарный номер" required>
+                            <input type="text" id="inventoryNumber" class="form-control" placeholder="Введите инвентарный номер" required autocomplete="off">
                         </div>
 
-                        <!-- Отдел -->
-<!--                        <div class="mb-3">-->
-<!--                            <label for="guestDepartment" class="form-label">Отдел</label>-->
-<!--                            <select id="guestDepartment" class="form-control">-->
-<!--                                <option></option> &lt;!&ndash; Пустой вариант для placeholder &ndash;&gt;-->
-<!--                            </select>-->
-<!--                        </div>-->
                         <!-- Отдел -->
                         <div class="mb-3">
                             <label for="guestDepartment" class="form-label">Отдел</label>
                             <div class="dropdown">
-                                <input type="text" id="guestDepartmentSearch" class="form-control" placeholder="Введите отдел для поиска...">
+                                <input type="text" id="guestDepartmentSearch" class="form-control" placeholder="Введите отдел для поиска..." autocomplete="off">
                                 <ul class="dropdown-menu w-100" id="guestDepartmentList">
                                     <!-- Элементы списка будут добавлены динамически -->
                                 </ul>
                             </div>
                         </div>
 
-
                         <!-- Номер телефона -->
                         <div class="mb-3">
-                            <label for="guestPhoneNumber" class="form-label">Номер телефона</label>
-                            <input type="tel" id="guestPhoneNumber" class="form-control" placeholder="Введите номер телефона" required>
+                            <label for="guestPhoneNumber" class="form-label" >Номер телефона</label>
+                            <input type="tel" id="guestPhoneNumber" class="form-control" placeholder="Введите номер телефона" required autocomplete="off">
                         </div>
 
                         <!-- Неисправность -->
                         <div class="mb-3">
                             <label for="descriptionOfTheProblem" class="form-label">Описание неисправности</label>
-                            <textarea id="descriptionOfTheProblem" class="form-control" rows="3" placeholder="Опишите неисправность" required></textarea>
+                            <textarea id="descriptionOfTheProblem" class="form-control" rows="3" placeholder="Опишите неисправность" required autocomplete="off"></textarea>
                         </div>
 
                         <!-- Кнопка отправки -->

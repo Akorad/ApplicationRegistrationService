@@ -44,12 +44,30 @@ h2 {
     margin-top: -22px; /* Поднимите выпадающий список, чтобы он прилегал к селекту */
     margin-left: 4px;
 }
-
+/*стиль для выпадающего списка департаментов*/
 .dropdown-menu {
     max-height: 200px; /* Ограничиваем высоту выпадающего списка */
     overflow-y: auto; /* Добавляем прокрутку, если список длинный */
 }
-.dropdown-item.active {
-    background-color: #0d6efd; /* Стиль активного элемента */
-    color: white;
+
+.dropdown-item {
+    white-space: nowrap; /* Запрещаем перенос строк */
+    overflow: hidden; /* Скрываем лишний текст */
+    text-overflow: ellipsis; /* Добавляем многоточие для длинного текста */
+    width: 100%; /* Задаём ширину */
+    transition: all 0.3s ease; /* Плавный переход */
+}
+
+/* Расширение элемента при наведении */
+.dropdown-item:hover {
+    white-space: normal; /* Разрешаем перенос строк */
+    overflow: visible; /* Показываем весь текст */
+    background-color: #f8f9fa; /* Цвет фона при наведении */
+    z-index: 1000; /* Обеспечиваем отображение поверх других элементов */
+    position: relative; /* Позиционируем элемент */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Добавляем тень */
+}
+
+.dropdown-item:hover span {
+    display: block; /* Отображаем текст полностью */
 }

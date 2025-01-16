@@ -18,6 +18,9 @@ public class SuppliesIssue {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "MOL_number", unique = true, nullable = true)
+    private Long MOLNumber;                  //Порядковый номер заявки
+
     private String molName;                     // Имя МОЛ
     private String comment;                     // Комментарий
     private LocalDateTime issueDate;            // Дата выдачи

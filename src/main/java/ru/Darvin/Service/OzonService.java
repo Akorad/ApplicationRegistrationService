@@ -17,13 +17,12 @@ import java.util.List;
 import java.util.Random;
 
 @Service
-public class OzonService  {
+public class OzonService {
 
     public ProductInfo getProductInfo(String productName) {
         WebDriver driver = setupDriver(); // Настройка драйвера
 
         try {
-
             // Формируем URL для поиска товара
             String searchUrl = "https://market.yandex.ru/search?text=" +
                     URLEncoder.encode(productName, StandardCharsets.UTF_8);
@@ -32,9 +31,13 @@ public class OzonService  {
             // Ждем загрузки страницы
             WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-            WebElement captcha = driver.findElement(By.id("js-button"));
-            captcha.click();
+            // Проверка на наличие капчи
+            if (isCaptchaPresent(driver)) {
+                System.out.println("Капча обнаружена. Пытаемся пройти...");
+                handleCaptcha(driver);
+            }
 
+            // Ждем появления результатов поиска
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("li.dDhtc")));
 
             // Получение информации о первом товаре
@@ -42,13 +45,10 @@ public class OzonService  {
 
             // URL товара
             String productUrl = firstProduct.findElement(By.cssSelector("a[data-auto='snippet-link']")).getAttribute("href");
-
             // URL изображения
             String imageUrl = firstProduct.findElement(By.cssSelector("img.w7Bf7")).getAttribute("src");
-
             // Цена
             String price = firstProduct.findElement(By.cssSelector("span[data-auto='snippet-price-current']")).getText();
-
             // Название товара
             String title = firstProduct.findElement(By.cssSelector("a[data-auto='snippet-link'] span")).getText();
 
@@ -62,7 +62,7 @@ public class OzonService  {
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при парсинге Яндекс.Маркета.", e);
         } finally {
-                driver.quit(); // Обязательно закрываем браузер
+            driver.quit(); // Обязательно закрываем браузер
         }
     }
 
@@ -96,7 +96,7 @@ public class OzonService  {
                 "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
                 "Mozilla/5.0 (iPhone; CPU iPhone OS 16_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Mobile/15E148 Safari/604.1",
-                "Mozilla/5.0 (Linux; Android 12; Pixel 6 Build/SQ1A.220205.004) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.87 Mobile Safari/537.36",
+                "Mozilla/5.0 (Linux; Android 12; Pixel 6 Build/SQ1A.220205.004) AppleWebKit/537.36 (KHTML, like Geo) Chrome/98.0.4758.87 Mobile Safari/537.36",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 Edg/91.0.864.64",
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36 OPR/77.0.4054.172",
                 "Mozilla/5.0 (iPad; CPU OS 14_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0 Mobile/15E148 Safari/604.1"
@@ -113,6 +113,26 @@ public class OzonService  {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             System.err.println("Ошибка при ожидании: " + e.getMessage());
+        }
+    }
+
+    private boolean isCaptchaPresent(WebDriver driver) {
+        try {
+            // Проверяем наличие элемента капчи
+            driver.findElement(By.id("js-button")); // Замените на актуальный селектор капчи
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    private void handleCaptcha(WebDriver driver) {
+        try {
+            // Клик по кнопке капчи
+            WebElement captchaButton = driver.findElement(By.id("js-button")); // Замените на актуальный селектор
+            captchaButton.click();
+        } catch (Exception e) {
+            System.err.println("Не удалось пройти капчу: " + e.getMessage());
         }
     }
 }

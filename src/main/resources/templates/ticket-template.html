@@ -55,7 +55,7 @@
         <td><br></td>
     </tr>
     <tr>
-        <td class='first' >[[${ticket.user.phoneNumber}]]<br></td>
+        <td class='first' >[[${ticket.userPhoneNumber != null ? ticket.userPhoneNumber : ticket.guestPhoneNumber}]]<br></td>
         <td class='first' style='hyphens: auto;'>[[${assetName[2]}]]<br></td>
         <td><br></td>
         <td><br></td>

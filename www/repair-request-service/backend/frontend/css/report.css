@@ -1,0 +1,84 @@
+/*.report-card {*/
+/*    height: 100%; !* Чтобы все карточки были одинаковой высоты *!*/
+/*    display: flex;*/
+/*    flex-direction: column;*/
+/*}*/
+/*.report-card canvas {*/
+/*    flex-grow: 1; !* График занимает все доступное пространство *!*/
+/*}*/
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    padding: 20px;
+}
+
+.tabs {
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.tab-button:hover {
+    background-color: #0056b3;
+}
+
+.tab-content {
+    display: none;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+.tab-content.active {
+    display: block;
+}
+.metric {
+    font-size: 1.2rem;
+    color: #333; /* Темный цвет текста */
+}
+.chart-container {
+    height: 400px; /* Фиксированная высота для графиков */
+    background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный белый фон */
+    backdrop-filter: blur(30px); /* Размытие фона */
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень для контейнера */
+    justify-content: center; /* Центрируем график по горизонтали */
+    align-items: center; /* Центрируем график по вертикали */
+    margin: 0 auto; /* Центрируем контейнер по горизонтали */
+    display: flex;
+}
+
+/* Стили для текстовых блоков */
+.text-block {
+    background-color: rgba(255, 255, 255, 0.8); /* Полупрозрачный белый фон */
+    backdrop-filter: blur(30px); /* Размытие фона */
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Тень для текстового блока */
+}
+
+/* Стили для списков */
+ul {
+    list-style-type: none; /* Убираем маркеры списка */
+    padding: 0;
+    margin: 0;
+}
+.tab-content li {
+    padding-left: 20px;
+}
+ul li:last-child {
+    border-bottom: none; /* Убираем разделитель у последнего элемента */
+}

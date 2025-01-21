@@ -7,7 +7,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.Darvin.DTO.TicketCreateDTO;
 import ru.Darvin.DTO.TicketCreateGuestDTO;
 import ru.Darvin.Entity.Ticket;
 import ru.Darvin.Service.TicketService;

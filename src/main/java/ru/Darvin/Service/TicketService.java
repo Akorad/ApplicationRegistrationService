@@ -171,6 +171,9 @@ public class TicketService {
         if (ticketUpdateDTO.getStatus().equals(CLOSED) && ticket.getEndDate() == null) {
             ticket.setEndDate(LocalDateTime.now());
         }
+        if (ticketUpdateDTO.getStatus().equals(READY) && ticket.getEndDate() == null) {
+            ticket.setReadyDate(LocalDateTime.now());
+        }
 
         // Суммируем количество материалов из запроса
         Map<String, Integer> incomingSuppliesMap = ticketUpdateDTO.getSupplies().stream()

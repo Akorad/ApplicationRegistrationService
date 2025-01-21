@@ -16,7 +16,7 @@ import java.util.Optional;
 @Repository
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
-    Optional<Ticket> findByEquipmentInventoryNumber(String inventoryNumber);
+    List<Ticket> findByCreatedDateBetween(LocalDateTime start, LocalDateTime end);
 
     Optional<Ticket> findByEquipmentInventoryNumberAndStatusNot(String inventoryNumber, TicketType status);
 

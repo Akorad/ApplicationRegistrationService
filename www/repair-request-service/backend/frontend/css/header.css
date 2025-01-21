@@ -1,78 +1,78 @@
 /* Базовые стили */
 body, html {
-    margin: 0;
-    padding: 0;
-    font-family: Arial, sans-serif;
-    box-sizing: border-box;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: Arial, sans-serif !important;
+    box-sizing: border-box !important;
 }
 
 .header .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 1rem;
-    background-color: #007bff;
-    color: white;
-    margin: 0;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 0.5rem 1rem !important;
+    background-color: #007bff !important;
+    color: white !important;
+    margin: 0 !important;
 }
 
 /* Логотип */
 .logo {
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
 }
 
 /* Меню */
 .navigation {
-    display: flex;
-    flex-direction: row; /* Горизонтальное меню по умолчанию */
+    display: flex !important;
+    flex-direction: row !important; /* Горизонтальное меню по умолчанию */
 }
 .navigation .btn {
-    border-width: thin;
-    border-style: solid;
-    border-color: black;
+    border-width: thin !important;
+    border-style: solid !important;
+    border-color: black !important;
 }
 
 /* Список ссылок */
 .nav-list {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
+    display: flex !important;
+    list-style: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
 }
 
 /* Стили ссылок */
 .nav-link {
-    text-decoration: none;
-    color: white;
-    padding: 0.5rem 1rem;
-    transition: background 0.3s ease;
+    text-decoration: none !important;
+    color: white !important;
+    padding: 0.5rem 1rem !important;
+    transition: background 0.3s ease !important;
 }
 
 /* Подсветка активных ссылок */
 .nav-link:hover,
 .nav-link.active {
-    background-color: #0056b3;
-    border-radius: 5px;
+    background-color: #0056b3 !important;
+    border-radius: 5px !important;
 }
 
 /* Кнопка меню (только для мобильных устройств) */
 .menu-toggle {
-    display: none;
-    background: none;
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    cursor: pointer;
+    display: none !important;
+    background: none !important;
+    border: none !important;
+    color: white !important;
+    font-size: 1.5rem !important;
+    cursor: pointer !important;
 }
 
 /* Вкладки */
 .tab-content {
-    display: none;
+    display: none !important;
 }
 
 .tab-content.active {
-    display: block;
+    display: block !important;
 }
 
 
@@ -81,62 +81,62 @@ body, html {
 @media (max-width: 768px) {
     /* Кнопка меню видна только на мобильных устройствах */
     .menu-toggle {
-        display: block;
+        display: block !important;
     }
 
     .navigation .btn {
-        padding: 16px;
+        padding: 16px !important;
     }
 
     /* Меню скрыто по умолчанию на мобильных устройствах */
     .navigation {
-        display: none;
-        flex-direction: column; /* Меню вертикальное на мобильных устройствах */
-        background-color: #007bff;
-        position: fixed; /* Фиксированное меню, чтобы оно перекрывало контент */
-        top: 0;
-        left: 0;
-        width: 100%; /* Ширина меню на весь экран */
-        height: auto; /* Высота меню на весь экран */
-        z-index: 1000; /* Чтобы меню было поверх контента */
-        /*padding-top: 60px; !* Отступ сверху, чтобы меню не перекрывало логотип *!*/
+        display: none !important;
+        flex-direction: column !important; /* Меню вертикальное на мобильных устройствах */
+        background-color: #007bff !important;
+        position: fixed !important; /* Фиксированное меню, чтобы оно перекрывало контент */
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important; /* Ширина меню на весь экран */
+        height: auto !important; /* Высота меню на весь экран */
+        z-index: 1000 !important; /* Чтобы меню было поверх контента */
+        /*padding-top: 60px !important; !* Отступ сверху, чтобы меню не перекрывало логотип *!*/
     }
 
 
     /* Когда меню активировано, оно становится видимым */
     .navigation.active {
-        display: flex; /* Меню будет видно */
+        display: flex !important; /* Меню будет видно */
     }
 
     /* Стили для каждой ссылки в меню */
     .nav-link {
-        padding: 1rem;
-        text-align: center;
-        border-bottom: 1px solid #0056b3;
+        padding: 1rem !important;
+        text-align: center !important;
+        border-bottom: 1px solid #0056b3 !important;
     }
 
     /* Убираем горизонтальные списки */
     .nav-list {
-        display: flex;
-        flex-direction: column; /* Список ссылок в колонку */
+        display: flex !important;
+        flex-direction: column !important; /* Список ссылок в колонку */
     }
     .logo{
-        font-size: 1.1rem;
-        font-weight: bold;
+        font-size: 1.1rem !important;
+        font-weight: bold !important;
     }
 }
 
 /* Для экранов больше 768px меню отображается горизонтально */
 @media (min-width: 769px) {
     .menu-toggle {
-        display: none; /* Кнопка скрыта на больших экранах */
+        display: none !important; /* Кнопка скрыта на больших экранах */
     }
 
     .navigation {
-        display: flex;
-        position: static; /* Меню не фиксированное */
-        flex-direction: row; /* Горизонтальное меню */
-        width: auto;
-        height: auto;
+        display: flex !important;
+        position: static !important; /* Меню не фиксированное */
+        flex-direction: row !important; /* Горизонтальное меню */
+        width: auto !important;
+        height: auto !important;
     }
 }

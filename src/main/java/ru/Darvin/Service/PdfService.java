@@ -57,9 +57,9 @@ public class PdfService {
 
 // наименование департамента
             List<String> department = splitTextIntoFixedRows(
-                    (ticketInfoDTO.getUser() != null && ticketInfoDTO.getUser().getDepartment() != null)
-                            ? ticketInfoDTO.getUser().getDepartment()
-                            : "",20,3);
+                    (ticketInfoDTO.getUserDepartment() != null) ? ticketInfoDTO.getUserDepartment() :
+                    (ticketInfoDTO.getGuestDepartment() != null) ? ticketInfoDTO.getGuestDepartment() :
+                    "" ,20,3);
 
 
 

@@ -38,6 +38,11 @@ app.get('/users', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'html','users.html'));
 });
 
+// Страница для управления пользователями (только локальная авторизация)
+app.get('/reports', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'html','report.html'));
+});
+
 // Обработка OpenID callback после авторизации
 app.get('/auth/callback', (req, res) => {
     const { code, state } = req.query;

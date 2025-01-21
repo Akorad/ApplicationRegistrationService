@@ -28,6 +28,9 @@ public class Ticket {
     private LocalDateTime createdDate;          //Дата создания
 
     @Column(nullable = true)
+    private LocalDateTime readyDate;              //Дата закрытия
+
+    @Column(nullable = true)
     private LocalDateTime endDate;              //Дата закрытия
 
     @Column(length = 1000)

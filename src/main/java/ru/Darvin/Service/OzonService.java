@@ -62,9 +62,7 @@ public class OzonService  {
         } catch (Exception e) {
             throw new RuntimeException("Ошибка при парсинге Яндекс.Маркета.", e);
         } finally {
-            if (driver != null) {
                 driver.quit(); // Обязательно закрываем браузер
-            }
         }
     }
 
@@ -73,6 +71,8 @@ public class OzonService  {
 
         // Настройка параметров Chrome
         ChromeOptions options = new ChromeOptions();
+
+        options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");

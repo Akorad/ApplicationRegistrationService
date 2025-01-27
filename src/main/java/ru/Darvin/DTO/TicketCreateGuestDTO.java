@@ -8,6 +8,8 @@ public class TicketCreateGuestDTO {
     private String descriptionOfTheProblem;             //Описание неисправности
     private String guestPhoneNumber;                    // Номер телефона гостя
     private String guestDepartment;                     // Отдел гостя
+    private Boolean refilling;                          //Заправка
+
 
     private EquipmentDTO equipment;                     //Инвентарный номер
 

@@ -1,0 +1,55 @@
+body {
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+.table td .collapse-block {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.btn {
+    margin: 2px;
+}
+.product-info {
+    margin-top: 10px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+.product-info img {
+    float: inline-end;
+    max-width: 100px;
+    height: auto;
+    margin-bottom: 10px;
+}
+/* Стили для контейнера с кнопкой "Найти информацию" */
+.search-info-button {
+    display: flex;
+    justify-content: center; /* Выравниваем кнопку по правому краю */
+    margin-bottom: 10px; /* Отступ снизу */
+}
+
+/* Стили для collapse-container */
+.collapse-container {
+    position: relative; /* Для позиционирования кнопки */
+}
+
+/* Стили для collapse-blocks */
+.collapse-blocks {
+    display: flex;
+    gap: 10px;
+}
+
+/* Стили для collapse-block */
+.collapse-block {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+p{
+    margin-bottom: 1px;
+}

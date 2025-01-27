@@ -1,11 +1,13 @@
 package ru.Darvin.Service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
 import ru.Darvin.DTO.Mapper.TicketMapperImpl;
 import ru.Darvin.DTO.TicketInfoDTO;
+import ru.Darvin.Entity.PurchaseItem;
 import ru.Darvin.Entity.Supplies;
 import ru.Darvin.Entity.Ticket;
 import ru.Darvin.Exception.PdfGenerationException;
@@ -16,6 +18,9 @@ import java.util.List;
 
 @Service
 public class PdfService {
+
+    @Autowired
+    private PurchaseService purchaseService;
 
     private final TicketRepository ticketRepository;
     private final TemplateEngine templateEngine;
@@ -158,5 +163,21 @@ public class PdfService {
         }
 
         return rows;
+    }
+
+    //генерация ПДФ для списка закупок
+    public byte[] generatePurchaseListPdf() {
+        // Получаем все элементы списка закупок
+        List<PurchaseItem> purchaseItems = purchaseService.getAllItems();
+
+        // Создаем Context для передачи данных в Thymeleaf
+        Context context = new Context();
+        context.setVariable("purchaseItems", purchaseItems);
+
+        // Генерация HTML контента с использованием шаблона
+        String htmlContent = templateEngine.process("purchase-list-template", context);
+
+        // Генерируем PDF
+        return pdfGenerator.generatePdf(htmlContent);
     }
 }

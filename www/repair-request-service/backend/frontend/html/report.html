@@ -30,6 +30,7 @@
         <button class="btn btn-primary" onclick="showTab('materials')">Отчет по материалам</button>
         <button class="btn btn-primary" onclick="showTab('trends')">Тенденции</button>
         <button class="btn btn-primary" onclick="showTab('forecast')">Прогноз</button>
+
     </div>
     <!-- Сводный отчет -->
     <div class="tab-content active" id="summary">
@@ -45,6 +46,9 @@
             </div>
             <div class="col-md-2">
                 <button class="btn btn-secondary mt-4" onclick="loadSummaryReport()">Отсортировать по датам</button>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary mt-3" id="generatePdfButton">Сгенерировать сводный отчет в формате PDF</button>
             </div>
         </div>
         <div class="row">

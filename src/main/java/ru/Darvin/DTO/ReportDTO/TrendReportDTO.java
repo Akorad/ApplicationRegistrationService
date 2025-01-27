@@ -1,4 +1,4 @@
-package ru.Darvin.DTO;
+package ru.Darvin.DTO.ReportDTO;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;

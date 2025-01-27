@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Сводный отчет</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', serif;
+            font-size: 12px;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .footer {
+            margin-top: 20px;
+            text-align: right;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+<h1>Сводный отчет за период</h1>
+<p><strong>Период:</strong> <span th:text="${startDate} + ' - ' + ${endDate}"></span></p>
+<p><strong>Общее количество заявок:</strong> <span th:text="${totalTickets}"></span></p>
+
+<h2>Количество заявок по исполнителям</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Исполнитель</th>
+        <th>Количество заявок</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="entry : ${ticketsByUser}">
+        <td th:text="${entry.key}"></td>
+        <td th:text="${entry.value}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h2 style="text-align: center;">Детали заявок</h2>
+<table>
+    <thead>
+    <tr>
+        <th>Номер заявки</th>
+        <th>Инвентарный номер</th>
+        <th>Редактор</th>
+        <th>Обнаруженная неисправность</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="ticket : ${ticketDetails}">
+        <td th:text="${ticket.ticketNumber}"></td>
+        <td th:text="${ticket.inventoryNumber}"></td>
+        <td th:text="${ticket.editor}"></td>
+        <td th:text="${ticket.detectedIssue}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<div class="footer">
+    <p>Отчет сгенерирован: <span th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy HH:mm')}"></span></p>
+</div>
+</body>
+</html>

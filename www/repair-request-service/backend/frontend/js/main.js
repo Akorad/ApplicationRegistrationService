@@ -38,13 +38,13 @@ document.addEventListener('DOMContentLoaded', function () {
         const ticketData = {
             department: createTicketForm.querySelector('[name="departmentSelect"]').value,
             phoneNumber: createTicketForm.querySelector('[name="phoneNumberSelect"]').value,
+            refilling: createTicketForm.querySelector('[name="refillingSelect"]').checked,
             descriptionOfTheProblem: createTicketForm.querySelector('[name="descriptionOfTheProblem"]').value,
             equipment: {
                 inventoryNumber: createTicketForm.querySelector('[name="inventoryNumber"]').value
             },
             // Добавьте другие поля по аналогии
         };
-
         createTicket(ticketData);
     });
 });

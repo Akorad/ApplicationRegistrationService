@@ -5,11 +5,14 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
     const guestDepartment = document.getElementById('guestDepartmentSearch').value;
     const guestPhoneNumber = document.getElementById('guestPhoneNumber').value;
     const descriptionOfTheProblem = document.getElementById('descriptionOfTheProblem').value;
+    const refilling = document.getElementById('refilling').value;
+
 
     const requestData = {
         descriptionOfTheProblem: descriptionOfTheProblem,
         guestPhoneNumber: guestPhoneNumber,
         guestDepartment: guestDepartment,
+        refilling:refilling,
         equipment: {
             inventoryNumber: inventoryNumber
         }

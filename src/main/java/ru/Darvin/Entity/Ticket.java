@@ -28,10 +28,13 @@ public class Ticket {
     private LocalDateTime createdDate;          //Дата создания
 
     @Column(nullable = true)
-    private LocalDateTime readyDate;              //Дата закрытия
+    private LocalDateTime readyDate;            //Дата готовности
 
     @Column(nullable = true)
     private LocalDateTime endDate;              //Дата закрытия
+
+    @Column(nullable = true)
+    private Boolean refilling;                  //Заправка
 
     @Column(length = 1000)
     private String descriptionOfTheProblem;     //Заявленная неисправность

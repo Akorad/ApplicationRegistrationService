@@ -6,6 +6,7 @@ import lombok.Data;
 public class TicketCreateDTO {
     private String department;          //Наименование отдела в котором работает
     private String phoneNumber;         //Номер телефона
+    private Boolean refilling;          //Заправка
     private String descriptionOfTheProblem;
     private EquipmentDTO equipment;
 

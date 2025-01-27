@@ -28,7 +28,7 @@ async function loadSummaryReport() {
         renderSummaryReport(summaryData);
     } catch (error) {
         console.error('Ошибка при загрузке сводного отчета:', error);
-        alert('Не удалось загрузить сводный отчет. Пожалуйста, попробуйте позже.');
+        showAlert('Не удалось загрузить сводный отчет. Пожалуйста, попробуйте позже.');
     }
 }
 
@@ -43,7 +43,7 @@ async function loadMaterialsReport() {
         renderMaterialUsageReport(materialData);
     } catch (error) {
         console.error('Ошибка при загрузке отчета по материалам:', error);
-        alert('Не удалось загрузить отчет по материалам. Пожалуйста, попробуйте позже.');
+        showAlert('Не удалось загрузить отчет по материалам. Пожалуйста, попробуйте позже.');
     }
 }
 
@@ -58,7 +58,7 @@ async function loadTrendsReport() {
         renderTrendReport(trendData);
     } catch (error) {
         console.error('Ошибка при загрузке отчета по тенденциям:', error);
-        alert('Не удалось загрузить отчет по тенденциям. Пожалуйста, попробуйте позже.');
+        showAlert('Не удалось загрузить отчет по тенденциям. Пожалуйста, попробуйте позже.');
     }
 }
 
@@ -72,7 +72,7 @@ async function loadForecastReport() {
         renderForecastReport(forecastData);
     } catch (error) {
         console.error('Ошибка при загрузке прогноза:', error);
-        alert('Не удалось загрузить прогноз. Пожалуйста, попробуйте позже.');
+        showAlert('Не удалось загрузить прогноз. Пожалуйста, попробуйте позже.');
     }
 }
 
@@ -282,4 +282,44 @@ document.addEventListener('DOMContentLoaded', () => {
     loadMaterialsReport();
     loadTrendsReport();
     loadForecastReport();
+});
+
+//открытие PDF отчетов
+document.getElementById('generatePdfButton').addEventListener('click', function () {
+    const startDate = document.getElementById('summaryStartDate').value;
+    const endDate = document.getElementById('summaryEndDate').value;
+    // Проверка наличия дат
+    if (!startDate || !endDate) {
+        showAlert('Пожалуйста, заполните обе даты: начальную и конечную.');
+        return; // Прерываем выполнение, если даты не заполнены
+    }
+
+    // Проверка, что startDate не позже endDate
+    if (new Date(startDate) > new Date(endDate)) {
+        showAlert('Начальная дата не может быть позже конечной даты.');
+        return; // Прерываем выполнение, если startDate > endDate
+    }
+
+    // Отправляем запрос с токеном авторизации
+    fetch(`${window.config.apiUrl}/api/reports/preview-summary-pdf?startDate=${startDate}&endDate=${endDate}`, {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('token')}` // Добавляем токен
+        }
+    })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Ошибка при генерации PDF');
+            }
+            return response.blob(); // Получаем ответ в виде Blob
+        })
+        .then(blob => {
+            // Создаем URL для Blob и открываем его в новой вкладке
+            const url = window.URL.createObjectURL(blob);
+            window.open(url, '_blank'); // Открываем PDF в новой вкладке
+            window.URL.revokeObjectURL(url); // Освобождаем память
+        })
+        .catch(error => {
+            console.error('Ошибка:', error);
+            showAlert('Не удалось сгенерировать PDF. Проверьте консоль для подробностей.');
+        });
 });

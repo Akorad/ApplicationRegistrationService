@@ -66,6 +66,18 @@
                                     th:value="${!#strings.isEmpty(ticket.guestDepartment) ? ticket.guestDepartment : ticket.userDepartment}">
                         </div>
 
+                        <!-- Обнаруженная неисправность -->
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" th:checked="${ticket.refilling}" id="refillingSelect" disabled>
+                                <label class="form-check-label" for="refillingSelect">
+                                    Заправка
+                                </label>
+                            </div>
+                            <label class="form-label">Обнаруженная неисправность</label>
+                        </div>
+
+
                         <!-- Номер телефона -->
                         <div class="mb-3">
                             <label class="form-label">Номер телефона</label>

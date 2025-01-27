@@ -38,9 +38,14 @@ app.get('/users', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'html','users.html'));
 });
 
-// Страница для управления пользователями (только локальная авторизация)
+// Страница для отчетов
 app.get('/reports', (req, res) => {
     res.sendFile(path.join(__dirname, 'frontend', 'html','report.html'));
+});
+
+// Страница для заказа деталей
+app.get('/order', (req, res) => {
+    res.sendFile(path.join(__dirname, 'frontend', 'html','order.html'));
 });
 
 // Обработка OpenID callback после авторизации

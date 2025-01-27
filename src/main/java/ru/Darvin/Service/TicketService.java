@@ -69,6 +69,7 @@ public class TicketService {
         ticket.setEquipment(equipment);
         ticket.setUserPhoneNumber(ticketCreateDTO.getPhoneNumber());
         ticket.setUserDepartment(ticketCreateDTO.getDepartment());
+        ticket.setRefilling(ticketCreateDTO.getRefilling());
 
         //Получение текущего пользователя из контекста безопасности
         User user = userService.getCurrentUser();
@@ -102,6 +103,7 @@ public class TicketService {
             ticket.setCreatedDate(LocalDateTime.now());
             ticket.setStatus(TicketType.CREATED);
             ticket.setEquipment(equipment);
+            ticket.setRefilling(ticketCreateGuestDTO.getRefilling());
 
             ticket.setUser(user);
 

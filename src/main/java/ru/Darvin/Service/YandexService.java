@@ -15,14 +15,14 @@ import java.util.List;
 import java.util.Random;
 
 @Service
-public class OzonService {
+public class YandexService {
 
     public ProductInfoDTO getProductInfo(String productName) {
         WebDriver driver = setupDriver(); // Настройка драйвера
 
         try {
-            // Формируем URL для поиска товара на Ozon
-            String searchUrl = "https://www.ozon.ru/search/?text=" + productName + "&from_global=true";
+            // Формируем URL для поиска товара
+            String searchUrl = "https://market.yandex.ru/search?text=" + productName;
             driver.get(searchUrl);
 
             // Ждем загрузки страницы
@@ -32,18 +32,18 @@ public class OzonService {
             waitForCaptcha(driver, wait);
 
             // Ждем появления результатов поиска
-            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[data-index='0']")));
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div[data-apiary-widget-name='@marketfront/SerpEntity']")));
 
             // Получение всех товаров на странице
-            List<WebElement> products = driver.findElements(By.cssSelector("div[data-index]"));
+            List<WebElement> products = driver.findElements(By.cssSelector("div[data-apiary-widget-name='@marketfront/SerpEntity']"));
 
-            // Проверяем, есть ли хотя бы один элемент
-            if (products.isEmpty()) {
+            // Проверяем, есть ли хотя бы два элемента
+            if (products.size() < 2) {
                 throw new RuntimeException("Недостаточно товаров на странице.");
             }
 
-            // Выбираем первый товар (индекс 0)
-            WebElement targetProduct = products.get(0);
+            // Выбираем второй товар (индекс 1, так как список начинается с 0)
+            WebElement targetProduct = products.get(1);
 
             // Пытаемся получить данные о товаре с использованием правильных селекторов
             String productUrl = getProductUrl(targetProduct);
@@ -55,11 +55,11 @@ public class OzonService {
             return new ProductInfoDTO(title, price, imageUrl, productUrl);
 
         } catch (TimeoutException e) {
-            throw new RuntimeException("Не удалось загрузить данные о продукте." + productName, e);
+            throw new RuntimeException("Не удалось загрузить данные о продукте.", e);
         } catch (NoSuchElementException e) {
             throw new RuntimeException("Не удалось найти информацию о товаре.", e);
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при парсинге Ozon.", e);
+            throw new RuntimeException("Ошибка при парсинге Яндекс.Маркета.", e);
         } finally {
             driver.quit(); // Обязательно закрываем браузер
         }
@@ -68,7 +68,7 @@ public class OzonService {
     private String getProductUrl(WebElement product) {
         try {
             // Селектор для URL товара
-            return product.findElement(By.cssSelector("a.tile-clickable-element")).getAttribute("href");
+            return product.findElement(By.cssSelector("a[data-auto='snippet-link']")).getAttribute("href");
         } catch (NoSuchElementException e) {
             throw new RuntimeException("Не удалось найти URL товара.", e);
         }
@@ -77,7 +77,7 @@ public class OzonService {
     private String getImageUrl(WebElement product) {
         try {
             // Селектор для URL изображения
-            return product.findElement(By.cssSelector("img.b933-a")).getAttribute("src");
+            return product.findElement(By.cssSelector("img.w7Bf7")).getAttribute("src");
         } catch (NoSuchElementException e) {
             throw new RuntimeException("Не удалось найти URL изображения.", e);
         }
@@ -85,17 +85,22 @@ public class OzonService {
 
     private String getPrice(WebElement product) {
         try {
-            // Селектор для цены
-            return product.findElement(By.cssSelector("span.tsHeadline500Medium")).getText();
+            // Сначала пытаемся найти цену со скидкой
+            return product.findElement(By.cssSelector("span[data-auto='snippet-price-old']")).getText();
         } catch (NoSuchElementException e) {
-            throw new RuntimeException("Не удалось найти цену товара.", e);
+            try {
+                // Если цена со скидкой не найдена, ищем текущую цену
+                return product.findElement(By.cssSelector("span[data-auto='snippet-price-current']")).getText();
+            } catch (NoSuchElementException ex) {
+                throw new RuntimeException("Не удалось найти цену товара.", ex);
+            }
         }
     }
 
     private String getTitle(WebElement product) {
         try {
             // Селектор для названия товара
-            return product.findElement(By.cssSelector("span.tsBody500Medium")).getText();
+            return product.findElement(By.cssSelector("span[data-auto='snippet-title']")).getText();
         } catch (NoSuchElementException e) {
             throw new RuntimeException("Не удалось найти название товара.", e);
         }

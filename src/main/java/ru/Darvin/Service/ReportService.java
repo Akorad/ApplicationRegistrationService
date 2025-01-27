@@ -3,13 +3,16 @@ package ru.Darvin.Service;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.math3.stat.regression.SimpleRegression;
 import org.springframework.stereotype.Service;
-import ru.Darvin.DTO.*;
+import ru.Darvin.DTO.ReportDTO.MaterialForecastDTO;
+import ru.Darvin.DTO.ReportDTO.MaterialUsageReportDTO;
+import ru.Darvin.DTO.ReportDTO.ReportSummaryDTO;
+import ru.Darvin.DTO.ReportDTO.TrendReportDTO;
 import ru.Darvin.Entity.Supplies;
 import ru.Darvin.Entity.Ticket;
-import ru.Darvin.Repository.EquipmentRepository;
 import ru.Darvin.Repository.SuppliesRepository;
 import ru.Darvin.Repository.TicketRepository;
-import ru.Darvin.Repository.UserRepository;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
 
 import java.time.Duration;
 import java.time.LocalDate;
@@ -25,8 +28,8 @@ public class ReportService {
 
     private final TicketRepository ticketRepository;
     private final SuppliesRepository suppliesRepository;
-    private final UserRepository userRepository;
-    private final EquipmentRepository equipmentRepository;
+    private final TemplateEngine templateEngine;
+    private final PdfGenerator pdfGenerator;
 
 
     //сводный отчет
@@ -280,21 +283,76 @@ public class ReportService {
         return sortedSeasonality;
     }
 
-    private List<Ticket> filterTicketsByDate(LocalDate startDate, LocalDate endDate) {
-        if (startDate == null && endDate == null) {
-            return ticketRepository.findAll();
-        }
-        return ticketRepository.findByCreatedDateBetween(
-                startDate != null ? startDate.atStartOfDay() : LocalDateTime.of(1970, 1, 1, 0, 0),
-                endDate != null ? endDate.atTime(23, 59, 59) : LocalDateTime.now()
-        );
-    }
-
     private List<Supplies> filterSuppliesByDate(LocalDate startDate, LocalDate endDate) {
         if (startDate == null && endDate == null) {
             return suppliesRepository.findAll();
         }
         return suppliesRepository.findByDateOfUseBetween(
+                startDate != null ? startDate.atStartOfDay() : LocalDateTime.of(1970, 1, 1, 0, 0),
+                endDate != null ? endDate.atTime(23, 59, 59) : LocalDateTime.now()
+        );
+    }
+
+    //создание сводного ПДФ отчета
+    public byte[] generateSummaryReportPdf(LocalDate startDate, LocalDate endDate) {
+        // Получаем данные для отчета
+        Map<String, Object> reportData = prepareSummaryReportData(startDate, endDate);
+
+        // Передаем данные в шаблон Thymeleaf
+        Context context = new Context();
+        context.setVariables(reportData);
+
+        // Генерируем HTML
+        String htmlContent = templateEngine.process("summary-report-template", context);
+
+        // Генерируем PDF
+        return pdfGenerator.generatePdf(htmlContent);
+    }
+
+    private Map<String, Object> prepareSummaryReportData(LocalDate startDate, LocalDate endDate) {
+        List<Ticket> tickets = filterTicketsByDate(startDate, endDate).stream()
+                .sorted(Comparator.comparing(Ticket::getTicketNumber).reversed()) // Сортировка по номеру заявки
+                .toList();
+
+        // Общее количество заявок
+        long totalTickets = tickets.size();
+
+        // Заявки по исполнителям
+        Map<String, Long> ticketsByUser = tickets.stream()
+                .filter(t -> t.getEditorUser() != null)
+                .collect(Collectors.groupingBy(
+                        t -> t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName(),
+                        Collectors.counting()
+                ));
+
+        // Детали заявок
+        List<Map<String, String>> ticketDetails = tickets.stream()
+                .map(t -> {
+                    Map<String, String> details = new HashMap<>();
+                    details.put("ticketNumber", t.getTicketNumber().toString());
+                    details.put("inventoryNumber", t.getEquipment() != null ? t.getEquipment().getInventoryNumber() : "N/A");
+                    details.put("editor", t.getEditorUser() != null ? t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName() : "N/A");
+                    details.put("detectedIssue", t.getDetectedProblem());
+                    return details;
+                })
+                .collect(Collectors.toList());
+
+        // Собираем все данные в Map
+        Map<String, Object> reportData = new HashMap<>();
+        reportData.put("totalTickets", totalTickets);
+        reportData.put("ticketsByUser", ticketsByUser);
+        reportData.put("ticketDetails", ticketDetails);
+        reportData.put("startDate", startDate);
+        reportData.put("endDate", endDate);
+
+        return reportData;
+    }
+
+    private List<Ticket> filterTicketsByDate(LocalDate startDate, LocalDate endDate) {
+        if (startDate == null && endDate == null) {
+            return ticketRepository.findAll();
+        }
+        return ticketRepository.findByCreatedDateBetween(
                 startDate != null ? startDate.atStartOfDay() : LocalDateTime.of(1970, 1, 1, 0, 0),
                 endDate != null ? endDate.atTime(23, 59, 59) : LocalDateTime.now()
         );

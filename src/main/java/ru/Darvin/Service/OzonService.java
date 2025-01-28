@@ -103,27 +103,31 @@ public class OzonService {
 
     private WebDriver setupDriver() {
         WebDriverManager.chromedriver().setup();
-
-        // Настройка параметров Chrome
         ChromeOptions options = new ChromeOptions();
 
         options.addArguments("--headless");
         options.addArguments("--disable-gpu");
         options.addArguments("--no-sandbox");
         options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--disable-blink-features=AutomationControlled"); // Отключаем автоматизацию
-        options.addArguments("user-agent=" + getRandomUserAgent()); // Случайный User-Agent
-        options.addArguments("--accept-language=ru-RU,en;q=0.9");
-        options.setExperimentalOption("useAutomationExtension", false);
+        options.addArguments("--disable-blink-features=AutomationControlled");
+        options.addArguments("user-agent=" + getRandomUserAgent());
+        options.addArguments("--start-maximized");
+        options.addArguments("--disable-popup-blocking");
+        options.addArguments("--lang=ru");
 
         WebDriver driver = new ChromeDriver(options);
 
-        // Убираем свойство navigator.webdriver
+        // Маскировка автоматизации
         ((JavascriptExecutor) driver).executeScript(
-                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})");
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});" +
+                        "window.navigator.chrome = {runtime: {}};" +
+                        "Object.defineProperty(navigator, 'plugins', {get: () => [1, 2, 3]});" +
+                        "Object.defineProperty(navigator, 'languages', {get: () => ['ru-RU', 'en']});"
+        );
 
         return driver;
     }
+
 
     private String getRandomUserAgent() {
         List<String> userAgents = Arrays.asList(

@@ -33,10 +33,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             "AND (:lastNamePattern IS NULL OR u.lastName LIKE :lastNamePattern) " +
             "AND (:editorFirstNamePattern IS NULL OR e.firstName LIKE :editorFirstNamePattern) " +
             "AND (:editorLastNamePattern IS NULL OR e.lastName LIKE :editorLastNamePattern) " +
-            "AND (:inventoryNumber IS NULL OR t.equipment.inventoryNumber = :inventoryNumber)")
+            "AND (:inventoryNumber IS NULL OR t.equipment.inventoryNumber = :inventoryNumber) " +
+            "AND (:hideClosed IS NULL OR :hideClosed = false OR t.status <> 'CLOSED') " +  // Новое условие
+            "AND (:hideRefilling IS NULL OR :hideRefilling = false OR t.refilling IS NULL OR t.refilling = false)")  // Исправленное условие
     Page<Ticket> findByFilters(TicketType status, String firstNamePattern, String lastNamePattern,
                                String editorFirstNamePattern, String editorLastNamePattern,
-                               String inventoryNumber, Pageable pageable);
+                               String inventoryNumber, Boolean hideClosed, Boolean hideRefilling,  // Новые параметры
+                               Pageable pageable);
 
     List<Ticket> findByEndDateBeforeAndStatusNotIn(LocalDateTime endDate, List<TicketType> statuses);
 

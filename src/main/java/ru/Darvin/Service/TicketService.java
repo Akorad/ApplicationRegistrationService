@@ -202,7 +202,7 @@ public class TicketService {
     }
 
     //Получение списка заявок
-    public Page<TicketSummaryDTO> getTicketSummaries(TicketFilterDTO filter, Pageable pageable){
+    public Page<TicketSummaryDTO> getTicketSummaries(TicketFilterDTO filter, Pageable pageable) {
         User summariesUser = userService.getCurrentUser();
         Page<Ticket> tickets;
 
@@ -214,6 +214,8 @@ public class TicketService {
                     filter.getEditorFirstNamePattern(),
                     filter.getEditorLastNamePattern(),
                     filter.getInventoryNumber(),
+                    filter.getHideClosed(),  // Новый параметр
+                    filter.getHideRefilling(),  // Новый параметр
                     pageable
             );
         } else {

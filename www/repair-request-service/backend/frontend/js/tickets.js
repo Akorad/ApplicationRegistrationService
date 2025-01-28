@@ -1,6 +1,7 @@
+let currentFilters = {};
 // Функция для получения списка заявок
-async function fetchTickets(page = 0, size = 10, filters = {}) {
-    const query = new URLSearchParams({page, size, ...filters}).toString();
+async function fetchTickets(page = 0, size = 10, filters = currentFilters) {
+    const query = new URLSearchParams({ page, size, ...filters }).toString();
     const response = await fetch(`${window.config.apiUrl}/api/tickets/summary?${query}`, {
         headers: {
             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -63,7 +64,7 @@ function updatePagination(totalPages, currentPage) {
     for (let i = 0; i < totalPages; i++) {
         const li = document.createElement('li');
         li.className = `page-item ${i === currentPage ? 'active' : ''}`;
-        li.innerHTML = `<a class="page-link" href="#" onclick="fetchTickets(${i})">${i + 1}</a>`;
+        li.innerHTML = `<a class="page-link" href="#" onclick="fetchTickets(${i}, 10, currentFilters)">${i + 1}</a>`;
         pagination.appendChild(li);
     }
 }

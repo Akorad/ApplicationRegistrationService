@@ -64,16 +64,16 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="firstName" class="form-label">Имя</label>
-                    <input type="text" class="form-control" id="firstName" name="firstName" autocomplete="off">
-                </div>
-                <div class="mb-3">
-                    <label for="lastName" class="form-label">Фамилия</label>
-                    <input type="text" class="form-control" id="lastName" name="lastName" autocomplete="off">
-                </div>
-                <div class="mb-3">
                     <label for="inventoryNumberFilter" class="form-label">Инвентарный номер</label>
                     <input type="text" class="form-control" id="inventoryNumberFilter" name="inventoryNumber" autocomplete="off">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="hideClosed" name="hideClosed">
+                    <label class="form-check-label" for="hideClosed">Скрыть закрытые заявки</label>
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="hideRefilling" name="hideRefilling">
+                    <label class="form-check-label" for="hideRefilling">Скрыть заявки с заправкой</label>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Применить фильтр</button>
             </form>

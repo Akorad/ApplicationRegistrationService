@@ -15,6 +15,8 @@ public class TicketFilterDTO {
     private String editorFirstName;
     private String editorLastName;
     private String inventoryNumber;
+    private Boolean hideClosed;  // Новое поле для скрытия заявок с типом CLOSED
+    private Boolean hideRefilling;  // Новое поле для скрытия заявок с типом заправка
 
     public String getFirstNamePattern() {
         return firstName != null ? "%" + firstName + "%" : null;

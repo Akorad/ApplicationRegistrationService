@@ -80,9 +80,12 @@ public class TicketController {
             @RequestParam(required = false) String lastName,
             @RequestParam(required = false) String editorFirstName,
             @RequestParam(required = false) String editorLastName,
-            @RequestParam(required = false) String inventoryNumber) {
+            @RequestParam(required = false) String inventoryNumber,
+            @RequestParam(required = false) Boolean hideClosed,  // Новый параметр
+            @RequestParam(required = false) Boolean hideRefilling) {  // Новый параметр) {
         Pageable pageable = PageRequest.of(page,size, Sort.by(Sort.Direction.DESC, "ticketNumber"));
-        TicketFilterDTO filter = new TicketFilterDTO(status, firstName, lastName, editorFirstName, editorLastName, inventoryNumber);
+        TicketFilterDTO filter = new TicketFilterDTO(status, firstName, lastName, editorFirstName, editorLastName,
+                inventoryNumber, hideClosed, hideRefilling);
         return ticketService.getTicketSummaries(filter, pageable);
     }
 

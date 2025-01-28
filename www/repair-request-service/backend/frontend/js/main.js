@@ -11,23 +11,23 @@ document.addEventListener('DOMContentLoaded', function () {
         fetchTickets();
     }
 
-    // Обработка фильтров
-    filterForm.addEventListener('submit', function (event) {
+// Обработка фильтров
+
+    document.getElementById('filterForm').addEventListener('submit', function (event) {
         event.preventDefault();
-        const filters = {
+         currentFilters = {
             status: document.getElementById('statusFilter').value,
-            firstName: document.getElementById('firstName').value,
-            lastName: document.getElementById('lastName').value,
             inventoryNumber: document.getElementById('inventoryNumberFilter').value,
+            hideClosed: document.getElementById('hideClosed').checked ? 'true' : null,
+            hideRefilling: document.getElementById('hideRefilling').checked ? 'true' : null
         };
         // Удаляем пустые поля из фильтров
-        Object.keys(filters).forEach(key => {
-            if (!filters[key]) {
-                delete filters[key];
+        Object.keys(currentFilters).forEach(key => {
+            if (!currentFilters[key]) {
+                delete currentFilters[key];
             }
         });
-
-        fetchTickets(0, 10, filters);
+        fetchTickets(0, 10, currentFilters);
     });
 
     // Создание новой заявки

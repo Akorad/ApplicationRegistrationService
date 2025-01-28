@@ -12,8 +12,12 @@ public class PurchaseItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 1000) // Увеличиваем длину до 1000 символов
     private String name; // Название товара
+
     private int quantity; // Количество
+
+    @Column(length = 1000) // Увеличиваем длину до 1000 символов
     private String notes; // Дополнительные заметки
 
 

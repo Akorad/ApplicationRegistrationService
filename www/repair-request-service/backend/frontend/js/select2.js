@@ -6,39 +6,73 @@ document.addEventListener("DOMContentLoaded", function () {
 // Загрузка данных с сервера
     async function loadSupplies() {
         try {
-            // Получаем токен из localStorage
             const token = localStorage.getItem('token');
+            const apiUrl1C = `${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`;
+            const apiUrlStock = `${window.config.apiUrl}/api/stock-supplies/all`;
 
-            // Если токен существует, добавляем его в заголовки
-            const response = await fetch(`${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`, {
-                method: 'GET', // Укажите метод GET
-                headers: {
-                    "Authorization": `Bearer ${token}`, // Добавляем заголовок с токеном
-                    'Content-Type': 'application/json' // Указываем тип контента
+            // Выполняем запросы параллельно
+            const [response1C, responseStock] = await Promise.all([
+                fetch(apiUrl1C, {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                }),
+                fetch(apiUrlStock, {
+                    method: 'GET',
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+            ]);
+
+            // Проверяем успешность запросов
+            if (!response1C.ok) throw new Error(`Ошибка 1С: ${response1C.status}`);
+            if (!responseStock.ok) throw new Error(`Ошибка склада: ${responseStock.status}`);
+
+            // Получаем JSON-данные
+            const [data1C, dataStock] = await Promise.all([
+                response1C.json(),
+                responseStock.json()
+            ]);
+
+            const uniqueNomenclatures = new Map();
+            // Обработка данных со склада
+            dataStock.forEach(item => {
+                const nomenclatureCode = item.nomenclatureCode;
+                if (!uniqueNomenclatures.has(nomenclatureCode)) {
+                    uniqueNomenclatures.set(nomenclatureCode, {
+                        id: nomenclatureCode,
+                        name: "(Склад) "+item.nomenclature
+                    });
                 }
             });
 
-            // Проверяем успешность ответа
-            if (!response.ok) {
-                throw new Error(`Ошибка: ${response.status}`);
-            }
+            // Обработка данных 1С
+            data1C.forEach(item => {
+                const nomenclatureCode = item.НоменклатураКод;
+                if (!uniqueNomenclatures.has(nomenclatureCode)) {
+                    uniqueNomenclatures.set(nomenclatureCode, {
+                        id: nomenclatureCode,
+                        name: "(1С) "+item.Номенклатура
+                    });
+                }
+            });
 
-            // Получаем данные из ответа
-            const data = await response.json();
 
-            // Обрабатываем полученные данные
-            supplyData.push(
-                ...data.map((item) => ({
-                    id: item.НоменклатураКод,
-                    name: item.Номенклатура,
-                }))
-            );
+
+            // Очищаем supplyData и добавляем новые данные
+            supplyData.length = 0;
+            supplyData.push(...uniqueNomenclatures.values());
+
+            console.log("Данные загружены успешно:", supplyData);
         } catch (error) {
             console.error("Ошибка загрузки данных:", error);
             showAlert("Ошибка при загрузке данных. Проверьте соединение с сервером.");
         }
     }
-
 
     // Создание элемента расходного материала
     function createSupplyElement(supply) {

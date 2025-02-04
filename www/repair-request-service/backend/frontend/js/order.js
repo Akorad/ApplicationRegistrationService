@@ -35,7 +35,9 @@ function fetchPurchaseItems() {
                 <td colspan="4">
                     <div class="collapse-container">
                         <div class="search-info-button">
-                            <button onclick="searchProductInfo(${item.id})" class="btn btn-info btn-sm">Найти информацию</button>
+                            <button onclick="searchProductInfo(this, ${item.id})" class="btn btn-info btn-sm">
+                                Найти информацию
+                            </button>
                         </div>
                         <div class="collapse-blocks">
                             ${renderProductInfos(item.productInfos)}
@@ -130,7 +132,7 @@ function submitOrder() {
             orderModal.hide();
 
             // Очищаем форму
-            document.getElementById('orderForm').reset();
+            document.getElementById('addItemForm').reset();
         })
         .catch(error => {
             showAlert(`Ошибка при добавлении элемента: ${error.message}`);
@@ -229,7 +231,14 @@ function updateAllProducts() {
 }
 
 // Функция для обновления конкретного товара
-function searchProductInfo(id) {
+function searchProductInfo(button, id) {
+    // Сохраняем оригинальный текст кнопки
+    const originalText = button.innerHTML;
+
+    // Делаем кнопку неактивной и заменяем текст на спиннер
+    button.disabled = true;
+    button.innerHTML = `<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Поиск...`;
+
     fetch(`${window.config.apiUrl}/api/purchases/search-product-info/${id}`, {
         method: 'POST',
         headers: {
@@ -241,8 +250,15 @@ function searchProductInfo(id) {
             // Обновляем список заказов
             fetchPurchaseItems();
         })
-        .catch(error => console.error('Ошибка при поиске информации:', error));
+        .catch(error => console.error('Ошибка при поиске информации:', error))
+        .finally(() => {
+            // Возвращаем кнопку в исходное состояние
+            button.innerHTML = originalText;
+            button.disabled = false;
+        });
 }
+
+
 //функция скачивания ПДФ списка закупок
 document.getElementById('previewPdfButton').addEventListener('click', function () {
     // URL вашего эндпоинта

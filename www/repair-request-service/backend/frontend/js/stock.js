@@ -1,77 +1,150 @@
 document.addEventListener("DOMContentLoaded", async function () {
     const materialsTableBody = document.getElementById("materialsTableBody");
     const searchInput = document.getElementById("materialSearch");
-    let materialsData = [];
+    let materialsData = []; // коллекция для поиска
     let currentMaterialId = null; // Для хранения текущего ID материала
 
-    // Загрузка списка материалов
-    async function loadMaterials() {
+    // Загрузка материалов из 1С
+    async function loadMaterialsFrom1C() {
         try {
             const response = await fetch(`${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`, {
                 headers: {
                     "Authorization": `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            if (!response.ok) throw new Error("Ошибка загрузки материалов");
+            if (!response.ok) throw new Error("Ошибка загрузки данных из 1С");
 
             const data = await response.json();
-            materialsData = data.map(item => ({
-                id: item.НоменклатураКод,
-                name: item.Номенклатура,
-                quantity: item.Количество || 0,
-                imageUrl: `/images/${item.НоменклатураКод}.jpg` // Генерация пути к изображению
-            }));
-
-            renderMaterials(materialsData); // Рендерим материалы после загрузки
+            return data.map(item => normalizeNomenclature(item, '1C'));
         } catch (error) {
-            console.error("Ошибка загрузки данных:", error);
-            showAlert("Ошибка при загрузке данных. Проверьте соединение с сервером.");
+            console.error("Ошибка загрузки данных из 1С:", error);
+            showAlert("Ошибка при загрузке данных из 1С.");
+            return [];
         }
     }
 
-    // Рендеринг таблицы материалов
+// Загрузка материалов со склада
+    async function loadMaterialsFromStock() {
+        try {
+            const response = await fetch(`${window.config.apiUrl}/api/stock-supplies/all`, {
+                headers: {
+                    "Authorization": `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            if (!response.ok) throw new Error("Ошибка загрузки материалов со склада");
+
+            const data = await response.json();
+            return data.map(item => normalizeNomenclature(item, 'Склад'));
+        } catch (error) {
+            console.error("Ошибка загрузки данных со склада:", error);
+            showAlert("Ошибка при загрузке данных со склада.");
+            return [];
+        }
+    }
+
+// Объединение данных из 1С и склада по номенклатурному коду
+    function mergeMaterials(onescData, stockData) {
+        const mergedData = [];
+
+        // Создаём карту по коду номенклатуры для материалов со склада
+        const stockMap = stockData.reduce((acc, item) => {
+            if (item.nomenclatureCode) {
+                acc[item.nomenclatureCode] = item;
+            }
+            return acc;
+        }, {});
+
+        onescData.forEach(item => {
+            if (item.nomenclatureCode) {
+                const stockItem = stockMap[item.nomenclatureCode];
+
+                // Если материал есть на складе, добавляем количество со склада
+                if (stockItem) {
+                    // Добавляем материал из 1С с количеством со склада
+                    mergedData.push({
+                        ...item,
+                        quantityStock: stockItem.quantity || 0
+                    });
+                    // Убираем из stockMap, чтобы не было дублирования
+                    delete stockMap[item.nomenclatureCode];
+                } else {
+                    // Если на складе нет материала, добавляем только данные из 1С
+                    mergedData.push({
+                        ...item,
+                        quantityStock: 0
+                    });
+                }
+            }
+        });
+
+        // Добавляем оставшиеся материалы из склада
+        for (let code in stockMap) {
+            const stockItem = stockMap[code];
+            mergedData.push({
+                ...stockItem,
+                quantity: 0, // Для материалов, которые есть только на складе, но нет в 1С
+                quantityStock: stockItem.quantity || 0 // Если материал только на складе, то его количество
+            });
+        }
+        materialsData = mergedData;
+        return mergedData;
+    }
+
+
+// Загрузка всех данных и рендеринг
+    async function loadMaterials() {
+        const onescMaterials = await loadMaterialsFrom1C();
+        const stockMaterials = await loadMaterialsFromStock();
+
+        // Объединяем данные из 1С и склада
+        const materialsData = mergeMaterials(onescMaterials, stockMaterials);
+
+        renderMaterials(materialsData); // Рендерим таблицу с объединёнными данными
+    }
+
+// Рендеринг таблицы материалов
     function renderMaterials(data) {
         materialsTableBody.innerHTML = ""; // Очищаем таблицу перед рендерингом
         data.forEach(material => {
             const row = document.createElement("tr");
 
             // Пути к изображению
-            const imageUrl = `${window.config.apiUrl}/images/${material.id}.jpg`;
+            const imageUrl = material.nomenclatureCode ? `${window.config.apiUrl}/images/${material.nomenclatureCode}.jpg` : '';
             const defaultImageUrl = `${window.config.apiUrl}/images/default-material.jpg`;
 
-            // Используем обработчик ошибок onerror для переключения на дефолтное изображение
+            // Проверяем, что материал имеет нужные данные, прежде чем их отображать
             row.innerHTML = `
             <td class="image-cell" style="position: relative;">
-                <img src="${imageUrl}" 
-                     alt="${material.name}" 
+                <img src="${imageUrl || defaultImageUrl}" 
+                     alt="${material.nomenclature || 'Неизвестный материал'}" 
                      class="material-image"
-                     onclick="openImageModal('${material.id}')"
+                     onclick="openImageModal('${material.nomenclatureCode || ''}')"
                      onerror="this.onerror=null;this.src='${defaultImageUrl}';">
-                <button class="edit-image-btn" onclick="openEditModal('${material.id}')">
+                <button class="edit-image-btn" onclick="openEditModal('${material.nomenclatureCode || ''}')">
                     🖊️
                 </button>
             </td>
-            <td>${material.name}</td>
-            <td>${material.quantity}</td>
+            <td>${material.nomenclature || 'Неизвестная номенклатура'}</td>
+            <td>${material.quantity || 0}</td>
+            <td>${material.quantityStock || 0}</td>
             <td>
-                <button class="btn btn-info btn-sm me-2" onclick="openRequestsModal('${material.id}')">Заявки</button>
-                <button class="btn btn-success btn-sm" onclick="openIssueModal('${material.id}')">Выдача</button>
+                <button class="btn btn-info btn-sm me-2" onclick="openRequestsModal('${material.nomenclatureCode || ''}')">Заявки</button>
+                <button class="btn btn-success btn-sm" onclick="openIssueModal('${material.nomenclatureCode || ''}')">Выдача</button>
             </td>
         `;
             materialsTableBody.appendChild(row);
         });
     }
 
-
-
     // Фильтрация материалов
     searchInput.addEventListener("input", () => {
         const query = searchInput.value.toLowerCase();
         const filteredMaterials = materialsData.filter(material =>
-            material.name.toLowerCase().includes(query)
+            material.nomenclature && material.nomenclature.toLowerCase().includes(query)
         );
         renderMaterials(filteredMaterials); // Отображаем только отфильтрованные материалы
     });
+
 
     // Открытие модального окна со списком заявок
     window.openRequestsModal = async function (nomenclatureCode) {
@@ -250,6 +323,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 if (!response.ok) {
                     return response.text().then((text) => { throw new Error(text); });
                 }
+                loadMaterials();
                 return response.json();
             })
             .then((data) => {
@@ -261,6 +335,15 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     //функция выдачи по МОЛ
     window. submitByMol=function() {
+
+        const molName = document.getElementById("molNameCreate").value.trim();
+
+        // Проверка заполненности поля molNameCreate
+        if (!molName) {
+            showAlert("Ошибка: Поле 'ФИО МОЛ' не может быть пустым!");
+            return;
+        }
+
         const request = {
             molName: document.getElementById("molNameCreate").value,
             comment: document.getElementById("commentMolCreate").value,
@@ -268,6 +351,7 @@ document.addEventListener("DOMContentLoaded", async function () {
             quantity: parseInt(document.getElementById("quantityMolCreate").value, 10),
         };
 
+        console.log(request);
         fetch(`${window.config.apiUrl}/api/SuppliesIssue/create/byMol`, {
             method: "POST",
             headers: {
@@ -280,6 +364,7 @@ document.addEventListener("DOMContentLoaded", async function () {
                 if (!response.ok) {
                     return response.text().then((text) => { throw new Error(text); });
                 }
+                loadMaterials();
                 return response.json();
             })
             .then((data) => {
@@ -287,7 +372,6 @@ document.addEventListener("DOMContentLoaded", async function () {
                 closeModal();
             })
             .catch((error) => showAlert("Ошибка: " + error.message));
-
     }
 
     // Применение фильтра по датам
@@ -591,5 +675,167 @@ async function deleteIssue(molNumber) {
     } catch (error) {
         console.error("Ошибка:", error);
         alert("Не удалось удалить заявку");
+    }
+}
+
+//загрузка списка в модельном окне создания расходных материалов
+$(document).ready(function () {
+    const apiUrl1C = `${window.config.apiUrl}/api/supplies/mol/Дроздова Татьяна Викторовна`;
+    const apiUrlStock = `${window.config.apiUrl}/api/stock-supplies/all`;
+
+    // Загружаем данные из обоих источников
+    Promise.all([
+        fetch(apiUrl1C, {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            }
+        }).then(response => response.json()),
+        fetch(apiUrlStock, {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem('token')}`
+            }
+        }).then(response => response.json())
+    ]).then(([data1C, dataStock]) => {
+        const nomenclatureList = $('#nomenclatureList');
+        const uniqueNomenclatures = new Map(); // Используем Map для избежания дубликатов
+
+        // Добавляем данные из 1С
+        data1C.forEach(item => {
+            const normalizedItem = normalizeNomenclature(item, '1C');
+            if (normalizedItem && !uniqueNomenclatures.has(normalizedItem.nomenclatureCode)) {
+                uniqueNomenclatures.set(normalizedItem.nomenclatureCode, normalizedItem);
+            }
+        });
+
+        // Добавляем данные со склада
+        dataStock.forEach(item => {
+            const normalizedItem = normalizeNomenclature(item, 'Склад');
+            if (normalizedItem && !uniqueNomenclatures.has(normalizedItem.nomenclatureCode)) {
+                uniqueNomenclatures.set(normalizedItem.nomenclatureCode, normalizedItem);
+            }
+        });
+
+        // Отображаем данные в списке
+        uniqueNomenclatures.forEach((item, key) => {
+            const label = item.source === '1C' ? '(1C)' : '(Склад)';
+            nomenclatureList.append(`
+        <li>
+          <button class="dropdown-item" type="button" data-value="${key}" data-name="${item.nomenclature}">${label} ${item.nomenclature}</button>
+        </li>
+      `);
+        });
+
+        // Обработчик выбора элемента
+        nomenclatureList.on('click', '.dropdown-item', function () {
+            const selectedText = $(this).data('name'); // Наименование
+            const selectedValue = $(this).data('value'); // Код номенклатуры
+            $('#nomenclatureSearch').val(selectedText); // Вставляем наименование в поле поиска
+            selectedNomenclatureCode = selectedValue; // Сохраняем выбранный код
+            nomenclatureList.hide(); // Скрываем выпадающий список
+        });
+
+        // Показываем список при фокусе на поле
+        $('#nomenclatureSearch').on('focus', function () {
+            nomenclatureList.show();
+        });
+
+        // Фильтрация списка при вводе
+        $('#nomenclatureSearch').on('input', function () {
+            const searchText = $(this).val().toLowerCase();
+            nomenclatureList.children('li').each(function () {
+                const itemText = $(this).text().toLowerCase();
+                $(this).toggle(itemText.includes(searchText)); // Показываем/скрываем элементы
+            });
+        });
+
+        // Скрываем список при клике вне
+        $(document).on('click', function (e) {
+            if (!$(e.target).closest('.dropdown').length) {
+                nomenclatureList.hide();
+            }
+        });
+    }).catch(error => {
+        console.error('Ошибка загрузки данных:', error);
+    });
+});
+
+function normalizeNomenclature(item, source) {
+    if (source === '1C') {
+        return {
+            id: null, // У 1С нет поля id
+            nomenclature: item.Номенклатура,
+            nomenclatureCode: item.НоменклатураКод,
+            quantity: item.Количество,
+            mol: item.МОЛ,
+            source: '1C'
+        };
+    } else if (source === 'Склад') {
+        return {
+            id: item.id,
+            nomenclature: item.nomenclature,
+            nomenclatureCode: item.nomenclatureCode,
+            quantity: item.quantity,
+            mol: item.mol,
+            source: 'Склад'
+        };
+    }
+    return null;
+}
+let selectedNomenclatureCode = null; // Для хранения выбранного кода номенклатуры
+
+//отправка данных на сервре
+async function submitSupplyForm() {
+    const nomenclatureName = $('#nomenclatureSearch').val(); // Наименование из input
+    const quantity = $('#quantityInput').val(); // Количество
+
+    if (!nomenclatureName || !quantity) {
+        alert('Заполните все поля!');
+        return;
+    }
+
+    // Формируем payload в зависимости от выбора пользователя
+    const payload = selectedNomenclatureCode
+        ? { nomenclature: nomenclatureName,
+            nomenclatureCode: selectedNomenclatureCode,
+            quantity: parseInt(quantity, 10) } // Если выбран код
+        : { nomenclature: nomenclatureName,
+            nomenclatureCode: "",
+            quantity: parseInt(quantity, 10)}; // Если введено вручную
+
+    // Отправляем данные на сервер
+
+    console.log (payload);
+    try {
+        const response = await fetch(`${window.config.apiUrl}/api/stock-supplies/create`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (response.ok) {
+            const data = await response.json(); // Предполагаем, что сервер возвращает созданный объект
+            alert('Расходный материал успешно добавлен!');
+
+            // Если это была новая номенклатура, добавляем её в список
+            if (!selectedNomenclatureCode) {
+                const nomenclatureList = $('#nomenclatureList');
+                nomenclatureList.append(`
+          <li>
+            <button class="dropdown-item" type="button" data-value="${data.nomenclatureCode}" data-name="${nomenclatureName}">(Склад) ${nomenclatureName}</button>
+          </li>
+        `);
+            }
+
+            // Закрываем модальное окно
+            bootstrap.Modal.getInstance(document.getElementById('addSupplyModal')).hide();
+        } else {
+            alert('Ошибка при добавлении расходного материала');
+        }
+    } catch (error) {
+        console.error('Ошибка:', error);
+        alert('Произошла ошибка при отправке данных');
     }
 }

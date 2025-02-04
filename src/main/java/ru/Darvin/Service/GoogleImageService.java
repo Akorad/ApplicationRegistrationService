@@ -1,31 +1,22 @@
 package ru.Darvin.Service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.util.UriComponentsBuilder;
 import ru.Darvin.DTO.GoogleSearchResponse;
 import ru.Darvin.DTO.ImageRequest;
 import ru.Darvin.DTO.SuppliesDTO;
+import ru.Darvin.Entity.StockSupplies;
+import ru.Darvin.Repository.StockSuppliesRepository;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 @Service
@@ -40,12 +31,19 @@ public class GoogleImageService {
     private static final String API_KEY_YANDEX = "AQVN0Qq-bmyR099zZVFWv5K_OjS4qyfcIoezOsC9"; // Ваш API ключ Яндекса
     private static final String API_URL_YANDEX = "https://yandex.ru/images-xml"; // URL для поиска изображений
 
+    @Autowired
     private final SuppliesService suppliesService;
+
+    @Autowired
+    private final StockSuppliesRepository stockSuppliesRepository;
+
+    @Autowired
     private final TranslationService translationService; // Сервис перевода
 
     @Autowired
-    public GoogleImageService(SuppliesService suppliesService, TranslationService translationService) {
+    public GoogleImageService(SuppliesService suppliesService, StockSuppliesRepository stockSuppliesRepository, TranslationService translationService) {
         this.suppliesService = suppliesService;
+        this.stockSuppliesRepository = stockSuppliesRepository;
         this.translationService = translationService;
     }
 
@@ -61,6 +59,7 @@ public class GoogleImageService {
     //Google version (7/10) не всегда ищет и 100 запросов в день
     public void fetchAndSaveImagesForMOL(String molName) {
         List<SuppliesDTO> materials = suppliesService.getSuppliesForMOL(molName);
+        List<StockSupplies> stockSupplies = stockSuppliesRepository.findAll();
 
         // Создаем папку для изображений, если она отсутствует
         File dir = new File(IMAGE_DIR);
@@ -81,6 +80,19 @@ public class GoogleImageService {
                 }
             }
         }
+        // Для каждого материала на складе ищем изображение
+        for (StockSupplies supplies : stockSupplies) {
+            String imageFileName = IMAGE_DIR + "/" + supplies.getNomenclatureCode() + ".jpg"; // Используем код материала в имени файла
+
+            // Проверяем, существует ли файл изображения
+            File imageFile = new File(imageFileName);
+            if (!imageFile.exists()) {
+                String imageUrl = findImageUrl(supplies.getNomenclature());
+                if (imageUrl != null) {
+                    saveImage(imageUrl, imageFile);
+                }
+            }
+        }
     }
 
     // Метод для поиска изображения
@@ -93,12 +105,11 @@ public class GoogleImageService {
                 // Формируем URL запроса
                 String queryUrl = String.format("%s?q=%s&searchType=image&key=%s&cx=%s",
                         API_URL_GOOGLE, URLEncoder.encode(searchQuery, StandardCharsets.UTF_8), API_KEY_GOOGLE, CX);
-
+                System.out.println("Сейчас мы ищем: " + searchQuery);
                 // Отправляем запрос
                 RestTemplate restTemplate = new RestTemplate();
                 ResponseEntity<GoogleSearchResponse> response = restTemplate.getForEntity(queryUrl, GoogleSearchResponse.class);
                 GoogleSearchResponse body = response.getBody();
-                System.out.println("Сейчас мы ищем: " + searchQuery);
                 System.out.println("Наша ссылка: " + queryUrl);
 
 

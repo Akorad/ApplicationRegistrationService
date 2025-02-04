@@ -44,6 +44,9 @@ public class TicketService {
     @Autowired
     private SuppliesService suppliesService;
 
+    @Autowired
+    private StockSuppliesService stockSuppliesService;
+
     //формат даты
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -336,34 +339,114 @@ public class TicketService {
 
             if (incomingSuppliesMap.containsKey(nomenclatureCode)) {
                 int newQuantity = incomingSuppliesMap.get(nomenclatureCode);
-                if (existingSupply.getQuantity() != newQuantity) {
+                int oldQuantity = existingSupply.getQuantity();
+
+                if (oldQuantity != newQuantity) {
                     existingSupply.setQuantity(newQuantity);
                     existingSupply.setDateOfUse(LocalDateTime.now());
+
+                    // Корректируем склад, если материал там есть
+                    SuppliesDTO stockSupply = stockSuppliesService.getSuppliesOrNull(nomenclatureCode);
+
+                    if (stockSupply != null) {
+                        int quantityDiff = newQuantity - oldQuantity;
+                        stockSuppliesService.updateStockQuantity(nomenclatureCode, -quantityDiff);
+                    }
                 }
+
                 incomingSuppliesMap.remove(nomenclatureCode);
             } else {
                 suppliesToRemove.add(existingSupply);
             }
         }
 
-        ticket.getSupplies().removeAll(suppliesToRemove);
+        // Удаление материалов из заявки и возврат их на склад
+        for (Supplies supply : suppliesToRemove) {
+            ticket.getSupplies().remove(supply);
 
+            SuppliesDTO stockSupply = stockSuppliesService.getSuppliesOrNull(supply.getNomenclatureCode());
+            if (stockSupply != null) {
+                stockSuppliesService.updateStockQuantity(supply.getNomenclatureCode(), supply.getQuantity());
+            }
+        }
+
+        // Добавление новых материалов в заявку и списание их со склада
         for (Map.Entry<String, Integer> entry : incomingSuppliesMap.entrySet()) {
             String nomenclatureCode = entry.getKey();
             int quantity = entry.getValue();
 
-            SuppliesDTO foundSupply = suppliesService.getSupplies(nomenclatureCode);
+            SuppliesDTO foundSupply = null;
+            boolean fromStock = false;
+
+            // 1. Проверяем на складе в первую очередь
+            foundSupply = stockSuppliesService.getSuppliesOrNull(nomenclatureCode);
             if (foundSupply != null) {
-                Supplies newSupply = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
-                newSupply.setQuantity(quantity);
-                newSupply.setTicket(ticket);
-                newSupply.setDateOfUse(LocalDateTime.now());
-                ticket.getSupplies().add(newSupply);
+                fromStock = true;
             } else {
-                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены");
+                // 2. Если нет на складе, пробуем найти в 1С
+                try {
+                    foundSupply = suppliesService.getSupplies(nomenclatureCode);
+                } catch (EquipmentNotFoundException e) {
+                    System.out.println("Ошибка: Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены ни на складе, ни в 1С.");
+                    continue;
+                }
+            }
+
+            // 3. Добавляем найденный материал в заявку
+            Supplies newSupply = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
+            newSupply.setQuantity(quantity);
+            newSupply.setTicket(ticket);
+            newSupply.setDateOfUse(LocalDateTime.now());
+            ticket.getSupplies().add(newSupply);
+
+            // 4. Если материал был на складе — списываем его
+            if (fromStock) {
+                stockSuppliesService.updateStockQuantity(nomenclatureCode, -quantity);
             }
         }
     }
+
+
+
+
+
+//старая версия обновления расходных материалов
+//    public void updateSupplies(Ticket ticket, Map<String, Integer> incomingSuppliesMap) {
+//        List<Supplies> suppliesToRemove = new ArrayList<>();
+//
+//        for (Supplies existingSupply : ticket.getSupplies()) {
+//            String nomenclatureCode = existingSupply.getNomenclatureCode();
+//
+//            if (incomingSuppliesMap.containsKey(nomenclatureCode)) {
+//                int newQuantity = incomingSuppliesMap.get(nomenclatureCode);
+//                if (existingSupply.getQuantity() != newQuantity) {
+//                    existingSupply.setQuantity(newQuantity);
+//                    existingSupply.setDateOfUse(LocalDateTime.now());
+//                }
+//                incomingSuppliesMap.remove(nomenclatureCode);
+//            } else {
+//                suppliesToRemove.add(existingSupply);
+//            }
+//        }
+//
+//        ticket.getSupplies().removeAll(suppliesToRemove);
+//
+//        for (Map.Entry<String, Integer> entry : incomingSuppliesMap.entrySet()) {
+//            String nomenclatureCode = entry.getKey();
+//            int quantity = entry.getValue();
+//
+//            SuppliesDTO foundSupply = suppliesService.getSupplies(nomenclatureCode);
+//            if (foundSupply != null) {
+//                Supplies newSupply = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
+//                newSupply.setQuantity(quantity);
+//                newSupply.setTicket(ticket);
+//                newSupply.setDateOfUse(LocalDateTime.now());
+//                ticket.getSupplies().add(newSupply);
+//            } else {
+//                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены");
+//            }
+//        }
+//    }
 
     public List<TicketInfoDTO> getTicketHistoryByInventoryNumber(String inventoryNumber) {
         // Поиск всех заявок по инвентарному номеру

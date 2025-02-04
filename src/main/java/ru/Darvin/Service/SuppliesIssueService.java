@@ -34,7 +34,10 @@ public class SuppliesIssueService {
     @Autowired
     private IssueRepository issueRepository;
 
-    // Метод выдачи по инвентарному номеру
+    @Autowired
+    private StockSuppliesService stockSuppliesService;
+
+// Метод выдачи по инвентарному номеру
     public Ticket issueByInventory(IssueByInventoryRequest request) {
         // Проверяем, существует ли оборудование
         Equipment equipment = ticketService.findOrCreateEquipment(request.getInventoryNumber());
@@ -43,20 +46,32 @@ public class SuppliesIssueService {
         Ticket ticket = ticketRepository.findByEquipmentInventoryNumberAndStatusNot(request.getInventoryNumber(), TicketType.CLOSED)
                 .orElseGet(() -> createNewTicket(request, equipment));
 
-        // Поиск расходного материала по номенклатурному коду
-        SuppliesDTO foundSupply = suppliesService.getSupplies(request.getNomenclatureCode());
-        if (foundSupply == null) {
-            throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + request.getNomenclatureCode() + " не найдены");
+        // Проверяем наличие материала на складе
+        SuppliesDTO foundSupply = stockSuppliesService.getSuppliesOrNull(request.getNomenclatureCode());
+        boolean fromStock = foundSupply != null;
+
+        // Если не нашли на складе, пробуем в 1С
+        if (!fromStock) {
+            try {
+                foundSupply = suppliesService.getSupplies(request.getNomenclatureCode());
+            } catch (EquipmentNotFoundException e) {
+                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + request.getNomenclatureCode() + " не найдены ни на складе, ни в 1С.");
+            }
         }
 
-        // Создание объекта Supplies из найденного материала
+        // Создаем объект Supplies из найденного материала
         Supplies supplies = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
         supplies.setQuantity(request.getQuantity());
-        supplies.setTicket(ticket); // Привязываем материал к текущей заявке
+        supplies.setTicket(ticket);
         supplies.setDateOfUse(LocalDateTime.now());
 
         // Добавляем материал в заявку
         ticket.getSupplies().add(supplies);
+
+        // Если материал был на складе — списываем его
+        if (fromStock) {
+            stockSuppliesService.updateStockQuantity(request.getNomenclatureCode(), -request.getQuantity());
+        }
 
         ticket.setEditorUser(userService.getCurrentUser());
         return ticketRepository.save(ticket);
@@ -64,7 +79,6 @@ public class SuppliesIssueService {
 
     // Метод выдачи по МОЛ
     public void issueByMol(IssueByMOLRequest request) {
-
         // Создание нового объекта SuppliesIssue
         SuppliesIssue suppliesIssue = new SuppliesIssue();
         suppliesIssue.setMolName(request.getMolName());
@@ -79,26 +93,37 @@ public class SuppliesIssueService {
             suppliesIssue.setSupplies(new ArrayList<>());
         }
 
-        // Поиск расходного материала по номенклатурному коду
-        SuppliesDTO foundSupply = suppliesService.getSupplies(request.getNomenclatureCode());
+        // Проверяем наличие материала на складе
+        SuppliesDTO foundSupply = stockSuppliesService.getSuppliesOrNull(request.getNomenclatureCode());
+        boolean fromStock = foundSupply != null;
 
-        // Проверка, если материал не найден
-        if (foundSupply == null) {
-            throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + request.getNomenclatureCode() + " не найдены");
+        // Если не нашли на складе, пробуем в 1С
+        if (!fromStock) {
+            try {
+                foundSupply = suppliesService.getSupplies(request.getNomenclatureCode());
+            } catch (EquipmentNotFoundException e) {
+                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + request.getNomenclatureCode() + " не найдены ни на складе, ни в 1С.");
+            }
         }
 
-        // Создание объекта Supplies из найденного материала
+        // Создаем объект Supplies из найденного материала
         Supplies supplies = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
         supplies.setQuantity(request.getQuantity());
         supplies.setSuppliesIssue(suppliesIssue);
         supplies.setDateOfUse(LocalDateTime.now());
 
-        // Добавление материала в список
+        // Добавляем материал в список
         suppliesIssue.getSupplies().add(supplies);
+
+        // Если материал был на складе — списываем его
+        if (fromStock) {
+            stockSuppliesService.updateStockQuantity(request.getNomenclatureCode(), -request.getQuantity());
+        }
 
         // Сохранение записи о выдаче в репозиторий
         issueRepository.save(suppliesIssue);
     }
+
 
     //Метод предоставляющий историю выдачи расходных материалов по МОЛ
     public List<IssueByMOLHistory> getHistoryIssue () {
@@ -110,54 +135,78 @@ public class SuppliesIssueService {
                 .collect(Collectors.toList());
     }
 
-    //метод для обновления информации о выдаче
-    public IssueByMOLHistory updateIssue (IssueByMOLUpdate issueByMOLUpdate){
+    // Метод для обновления информации о выдаче
+    public IssueByMOLHistory updateIssue(IssueByMOLUpdate issueByMOLUpdate) {
         SuppliesIssue suppliesIssue = issueRepository.findByMOLNumber(issueByMOLUpdate.getMOLNumber())
-                .orElseThrow(()-> new RuntimeException("Заявка с номером " + issueByMOLUpdate.getMOLNumber() + " не найдена"));
-//        suppliesIssue = IssueMapperImpl.INSTANCE.mapToIssue(issueByMOLUpdate);
+                .orElseThrow(() -> new RuntimeException("Заявка с номером " + issueByMOLUpdate.getMOLNumber() + " не найдена"));
 
-        IssueMapperImpl.INSTANCE.updateFromDto(issueByMOLUpdate, suppliesIssue);
-        // Поиск расходного материала по номенклатурному коду
-        SuppliesDTO foundSupply = suppliesService.getSupplies(issueByMOLUpdate.getNomenclatureCode());
-
-        if (foundSupply == null) {
-            throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + issueByMOLUpdate.getNomenclatureCode() + " не найдены");
+        // Проверяем наличие старых материалов и возвращаем их на склад перед обновлением
+        if (suppliesIssue.getSupplies() != null) {
+            for (Supplies oldSupply : suppliesIssue.getSupplies()) {
+                stockSuppliesService.updateStockQuantity(oldSupply.getNomenclatureCode(), oldSupply.getQuantity());
+            }
         }
 
-// Создание объекта Supplies из найденного материала
+        // Обновление заявки
+        IssueMapperImpl.INSTANCE.updateFromDto(issueByMOLUpdate, suppliesIssue);
+
+        // Проверяем наличие материала сначала на складе
+        SuppliesDTO foundSupply = stockSuppliesService.getSuppliesOrNull(issueByMOLUpdate.getNomenclatureCode());
+        boolean fromStock = foundSupply != null;
+
+        // Если не найдено на складе, запрашиваем из 1С
+        if (!fromStock) {
+            foundSupply = suppliesService.getSupplies(issueByMOLUpdate.getNomenclatureCode());
+            if (foundSupply == null) {
+                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + issueByMOLUpdate.getNomenclatureCode() + " не найдены ни на складе, ни в 1С.");
+            }
+        }
+
+        // Создание нового объекта Supplies
         Supplies supplies = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
         supplies.setQuantity(issueByMOLUpdate.getQuantity());
         supplies.setSuppliesIssue(suppliesIssue);
         supplies.setDateOfUse(LocalDateTime.now());
 
-// Удаление старых материалов
+        // Удаление старых материалов и добавление нового
         if (suppliesIssue.getSupplies() == null) {
             suppliesIssue.setSupplies(new ArrayList<>());
         } else {
             suppliesIssue.getSupplies().clear();
         }
 
-// Добавление нового материала в список
         suppliesIssue.getSupplies().add(supplies);
 
-        issueRepository.save(suppliesIssue);
+        // Если материал был на складе — списываем новое количество
+        if (fromStock) {
+            stockSuppliesService.updateStockQuantity(issueByMOLUpdate.getNomenclatureCode(), -issueByMOLUpdate.getQuantity());
+        }
 
+        issueRepository.save(suppliesIssue);
         return IssueMapperImpl.INSTANCE.mapToMOLHistory(suppliesIssue);
     }
 
-    //метод для удаления информации о выдаче
-    public void deleteIssue (Long MOLNumber){
+    // Метод для удаления информации о выдаче
+    public void deleteIssue(Long MOLNumber) {
         SuppliesIssue suppliesIssue = issueRepository.findByMOLNumber(MOLNumber)
-                .orElseThrow(()-> new RuntimeException("Заявка с номером " + MOLNumber + " не найдена"));
+                .orElseThrow(() -> new RuntimeException("Заявка с номером " + MOLNumber + " не найдена"));
 
-        //Пользователь удаляющий заявку
-        User currentUser  = userService.getCurrentUser();
-        if (currentUser.getRole() == ADMIN) {
-            issueRepository.delete(suppliesIssue);
-        } else {
+        // Проверяем роль пользователя
+        User currentUser = userService.getCurrentUser();
+        if (currentUser.getRole() != ADMIN) {
             throw new SecurityException("У вас нет прав для удаления этой заявки");
         }
+
+        // Возвращаем списанные материалы на склад перед удалением заявки
+        if (suppliesIssue.getSupplies() != null) {
+            for (Supplies supply : suppliesIssue.getSupplies()) {
+                stockSuppliesService.updateStockQuantity(supply.getNomenclatureCode(), supply.getQuantity());
+            }
+        }
+
+        issueRepository.delete(suppliesIssue);
     }
+
 
     // Метод создания заявки по инвентарному
     private Ticket createNewTicket(IssueByInventoryRequest request, Equipment equipment) {

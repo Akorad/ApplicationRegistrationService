@@ -46,6 +46,8 @@ $(document).ready(function () {
     const apiUrl = `${window.config.apiUrl}/api/departments/names`;
 
     // Загружаем данные из API
+
+
     $.ajax({
         url: apiUrl,
         method: 'GET',

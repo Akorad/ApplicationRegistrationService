@@ -266,13 +266,13 @@ span {
 
 .selected-item input {
     width: 60px;
-    margin-left: 10px;
+    margin-left: auto;
     margin-right: 10px;
 }
 
-.selected-item button {
-    margin-left: auto;
-}
+/*.selected-item button {*/
+/*    margin-left: auto;*/
+/*}*/
 
 /* Адаптивность */
 @media (max-width: 768px) {

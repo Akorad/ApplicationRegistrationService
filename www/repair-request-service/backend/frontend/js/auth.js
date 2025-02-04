@@ -140,26 +140,36 @@ function checkAuthStatus() {
     }
 
     if (token) {
-        const parsedToken = parseJwt(token);
+        try {
+            const parsedToken = parseJwt(token);
 
-        // Проверяем срок действия токена
-        const currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
-        if (parsedToken?.exp && parsedToken.exp < currentTime) {
-            console.warn("Токен истек.");
-            handleLogout(); // Удаляем токен и обновляем интерфейс
-            return;
-        }
+            if (!parsedToken || !parsedToken.exp) {
+                console.warn("Некорректный токен.");
+                handleLogout();
+                return;
+            }
 
-        // Если токен валиден
-        if (parsedToken?.role) {
-            loginButton.style.display = "none";
-            logoutButton.style.display = "inline-block";
-        } else {
-            handleLogout(); // Удаляем токен и обновляем интерфейс
+            const currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
+            console.log(`Текущие время: ${currentTime}, срок действия токена: ${parsedToken.exp}`);
+
+            if (parsedToken.exp < currentTime) {
+                console.warn("Токен истек.");
+                handleLogout(); // Удаляем токен и обновляем интерфейс
+                return;
+            }
+
+            // Если токен валиден
+            if (parsedToken.role) {
+                loginButton.style.display = "none";
+                logoutButton.style.display = "inline-block";
+            } else {
+                console.warn("Токен не содержит роли.");
+                handleLogout();
+            }
+        } catch (error) {
+            console.error("Ошибка при обработке токена:", error);
+            handleLogout();
         }
-    } else {
-        loginButton.style.display = "inline-block";
-        logoutButton.style.display = "none";
     }
 }
 

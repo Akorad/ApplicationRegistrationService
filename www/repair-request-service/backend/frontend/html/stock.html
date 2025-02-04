@@ -24,6 +24,9 @@
                     <button class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#dateFilterModal">
                         Список расхода по дате
                     </button>
+                    <button type="button" class="btn btn-primary ms-3" data-bs-toggle="modal" data-bs-target="#addSupplyModal">
+                        Добавить расходный материал
+                    </button>
                 </div>
             </div>
 
@@ -40,7 +43,8 @@
                 <tr>
                     <th>Изображение</th>
                     <th>Наименование</th>
-                    <th>Количество</th>
+                    <th>Кол-во 1с</th>
+                    <th>Кол-во склад</th>
                     <th>Действия</th>
                 </tr>
                 </thead>
@@ -50,6 +54,39 @@
             </table>
         </div>
     </div>
+
+<!-- Модальное окно для добавления расходного материала -->
+<div class="modal fade" id="addSupplyModal" tabindex="-1" aria-labelledby="addSupplyModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSupplyModalLabel">Добавить расходный материал</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addSupplyForm">
+                    <div class="mb-3">
+                        <label for="nomenclatureSearch" class="form-label">Номенклатура</label>
+                        <div class="dropdown">
+                            <input type="text" id="nomenclatureSearch" class="form-control" placeholder="Поиск номенклатуры..." autocomplete="off">
+                            <ul id="nomenclatureList" class="dropdown-menu" style="display: none; max-height: 200px; overflow-y: auto;">
+                                <!-- Список номенклатур будет заполнен через JavaScript -->
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quantityInput" class="form-label">Количество</label>
+                        <input type="number" class="form-control" id="quantityInput" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="submitSupplyForm()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+</div>
 
     <!-- Модальное окно: Список заявок -->
     <div class="modal fade" id="requestsModal" tabindex="-1" aria-labelledby="requestsModalLabel" aria-hidden="true">
@@ -298,7 +335,7 @@
 </div>
 
 <!-- Контейнер для алертов -->
-<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+<div id="alertContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 10500;">
     <!-- Алерты будут добавляться сюда -->
 </div>
 

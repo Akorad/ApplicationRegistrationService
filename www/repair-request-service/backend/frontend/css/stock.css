@@ -210,5 +210,17 @@
 }
 
 
+.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 20px; /* Под стрелку */
+}
+
+.sortable span {
+    transition: transform 0.2s ease-in-out;
+}
+
+
 
 

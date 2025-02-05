@@ -839,3 +839,35 @@ async function submitSupplyForm() {
         alert('Произошла ошибка при отправке данных');
     }
 }
+let sortDirection = {}; // Хранит текущее состояние сортировки
+
+function sortTable(columnIndex, thElement) {
+    let table = document.getElementById("materialsTableBody");
+    let rows = Array.from(table.getElementsByTagName("tr"));
+
+    // Определяем текущий порядок сортировки
+    let ascending = sortDirection[columnIndex] !== true;
+    sortDirection[columnIndex] = ascending; // Переключаем порядок
+
+    rows.sort((rowA, rowB) => {
+        let cellA = rowA.getElementsByTagName("td")[columnIndex]?.innerText.trim();
+        let cellB = rowB.getElementsByTagName("td")[columnIndex]?.innerText.trim();
+
+        // Определяем тип данных (число или текст)
+        let isNumber = !isNaN(parseFloat(cellA)) && !isNaN(parseFloat(cellB));
+
+        if (isNumber) {
+            return ascending ? cellA - cellB : cellB - cellA;
+        } else {
+            return ascending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+        }
+    });
+
+    // Перерисовываем строки в нужном порядке
+    table.innerHTML = "";
+    rows.forEach(row => table.appendChild(row));
+
+    // Обновляем стрелки в заголовке
+    document.querySelectorAll(".sortable span").forEach(span => span.innerHTML = ""); // Сброс всех стрелок
+    thElement.querySelector("span").innerHTML = ascending ? " ▲" : " ▼";
+}

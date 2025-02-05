@@ -42,9 +42,9 @@
                 <thead class="thead-light">
                 <tr>
                     <th>Изображение</th>
-                    <th>Наименование</th>
-                    <th>Кол-во 1с</th>
-                    <th>Кол-во склад</th>
+                    <th class="sortable" onclick="sortTable(1, this)">Наименование <span></span></th>
+                    <th class="sortable" onclick="sortTable(2, this)">Кол-во 1с <span></span></th>
+                    <th class="sortable" onclick="sortTable(3, this)">Кол-во склад <span></span></th>
                     <th>Действия</th>
                 </tr>
                 </thead>
@@ -202,11 +202,11 @@
 </div>
 
 <!-- Модальное окно для изменения изображения -->
-<div class="modal fade" id="imageEditModal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+<div class="modal fade" id="imageEditModal" tabindex="-1" aria-labelledby="imageEditModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="imageModalLabel">Изменить изображение материала</h5>
+                <h5 class="modal-title" id="imageEditModalLabel">Изменить изображение материала</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

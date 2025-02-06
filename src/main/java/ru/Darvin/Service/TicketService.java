@@ -73,6 +73,9 @@ public class TicketService {
         ticket.setUserPhoneNumber(ticketCreateDTO.getPhoneNumber());
         ticket.setUserDepartment(ticketCreateDTO.getDepartment());
         ticket.setRefilling(ticketCreateDTO.getRefilling());
+        if (ticket.getRefilling()){
+            ticket.setDetectedProblem("Заправка");
+        }
 
         //Получение текущего пользователя из контекста безопасности
         User user = userService.getCurrentUser();
@@ -107,6 +110,10 @@ public class TicketService {
             ticket.setStatus(TicketType.CREATED);
             ticket.setEquipment(equipment);
             ticket.setRefilling(ticketCreateGuestDTO.getRefilling());
+
+            if (ticket.getRefilling()){
+                ticket.setDetectedProblem("Заправка");
+            }
 
             ticket.setUser(user);
 

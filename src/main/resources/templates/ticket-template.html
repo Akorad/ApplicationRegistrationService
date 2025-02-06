@@ -98,7 +98,7 @@
     <tr>
         <td colspan='3'>
             <!--<p>".($data['type_of_work'])."</p>-->
-            <p class='first'> <input type='checkbox' /> Заправка
+            <p class='first'> <input type='checkbox' th:checked="${ticket.refilling}"/> Заправка
                 <input type='checkbox' /> Ремонт
                 <input type='checkbox' /> Модернизация
                 <input type='checkbox' /> Прочие виды работ</p></td>
@@ -144,8 +144,8 @@
     <tr>
         <td><br></td>
         <td><br></td>
-        <td><br></td>
         <td>[[${#temporals.format(ticket.endDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
+        <td>[[${#temporals.format(ticket.readyDate, 'dd.MM.yyyy HH:mm')}]]<br></td>
     </tr>
     <tr>
         <td><br></td>

@@ -13,6 +13,7 @@ public class TicketInfoDTO {
     private Long ticketNumber;                  //Порядковый номер заявки
     private LocalDateTime createdDate;          //Дата создания
     private LocalDateTime endDate;              //Дата закрытия
+    private LocalDateTime readyDate;              //Дата закрытия
     private Boolean refilling;
     private String descriptionOfTheProblem;     //Заявленная неисправность
     private String detectedProblem;             //Обнаруженная неисправность

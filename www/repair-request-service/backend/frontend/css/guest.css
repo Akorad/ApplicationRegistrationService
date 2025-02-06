@@ -71,3 +71,21 @@ h2 {
 .dropdown-item:hover span {
     display: block; /* Отображаем текст полностью */
 }
+/* Увеличенный form-switch */
+.custom-switch {
+    display: flex;
+    align-items: center;
+    padding-left: 11px;
+    gap: 15px; /* Расстояние между переключателем и текстом */
+}
+
+/* Увеличение размера самого переключателя */
+.custom-switch .form-check-input {
+    transform: scale(1.6); /* Увеличение переключателя */
+    margin-left: 0;
+    cursor: pointer; /* Указывает, что элемент кликабельный */
+
+}
+
+
+

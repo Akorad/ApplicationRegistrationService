@@ -15,10 +15,10 @@ public class ProductInfo {
 
     private String title; // Название товара
     private String price; // Цена
-    @Column(length = 1000) // Увеличиваем длину до 1000 символов
+    @Column(length = 2000) // Увеличиваем длину до 1000 символов
     private String imageUrl;
 
-    @Column(length = 1000) // Увеличиваем длину до 1000 символов
+    @Column(length = 2000) // Увеличиваем длину до 1000 символов
     private String productUrl;
 
     @Enumerated(EnumType.STRING) // Указываем, что это enum

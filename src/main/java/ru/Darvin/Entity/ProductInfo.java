@@ -13,8 +13,11 @@ public class ProductInfo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 500) // Увеличиваем длину до 1000 символов
     private String title; // Название товара
+
     private String price; // Цена
+
     @Column(length = 2000) // Увеличиваем длину до 1000 символов
     private String imageUrl;
 

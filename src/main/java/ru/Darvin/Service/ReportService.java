@@ -310,14 +310,24 @@ public class ReportService {
     }
 
     private Map<String, Object> prepareSummaryReportData(LocalDate startDate, LocalDate endDate) {
+        // Фильтруем заявки по диапазону дат и сортируем их (по убыванию номера заявки)
         List<Ticket> tickets = filterTicketsByDate(startDate, endDate).stream()
-                .sorted(Comparator.comparing(Ticket::getTicketNumber).reversed()) // Сортировка по номеру заявки
+                .sorted(Comparator.comparing(Ticket::getTicketNumber).reversed())
                 .toList();
+
 
         // Общее количество заявок
         long totalTickets = tickets.size();
 
-        // Заявки по исполнителям
+        // Количество заявок, где была заправка
+        long ticketsWithRefilling = tickets.stream()
+                .filter(ticket -> Boolean.TRUE.equals(ticket.getRefilling()))
+                .count();
+
+        // Количество заявок, где заправки не было
+        long ticketsWithoutRefilling = totalTickets - ticketsWithRefilling;
+
+        // Общее распределение заявок по исполнителям (если editorUser не равен null)
         Map<String, Long> ticketsByUser = tickets.stream()
                 .filter(t -> t.getEditorUser() != null)
                 .collect(Collectors.groupingBy(
@@ -325,28 +335,54 @@ public class ReportService {
                         Collectors.counting()
                 ));
 
-        // Детали заявок
+        // Распределение заявок с заправкой по исполнителям
+        Map<String, Long> ticketsByUserWithRefilling = tickets.stream()
+                .filter(ticket -> Boolean.TRUE.equals(ticket.getRefilling()))
+                .filter(t -> t.getEditorUser() != null)
+                .collect(Collectors.groupingBy(
+                        t -> t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName(),
+                        Collectors.counting()
+                ));
+
+        // Распределение заявок без заправки по исполнителям
+        Map<String, Long> ticketsByUserWithoutRefilling = tickets.stream()
+                .filter(t -> Boolean.FALSE.equals(t.getRefilling()))
+                .filter(t -> t.getEditorUser() != null)
+                .collect(Collectors.groupingBy(
+                        t -> t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName(),
+                        Collectors.counting()
+                ));
+
+        // Детали заявок (можно добавить дополнительное поле "refilling")
         List<Map<String, String>> ticketDetails = tickets.stream()
                 .map(t -> {
                     Map<String, String> details = new HashMap<>();
                     details.put("ticketNumber", t.getTicketNumber().toString());
                     details.put("inventoryNumber", t.getEquipment() != null ? t.getEquipment().getInventoryNumber() : "N/A");
-                    details.put("editor", t.getEditorUser() != null ? t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName() : "N/A");
+                    details.put("editor", t.getEditorUser() != null
+                            ? t.getEditorUser().getFirstName() + " " + t.getEditorUser().getLastName()
+                            : "N/A");
                     details.put("detectedIssue", t.getDetectedProblem());
+                    details.put("refilling", t.getRefilling() != null ? t.getRefilling().toString() : "false");
                     return details;
                 })
                 .collect(Collectors.toList());
 
-        // Собираем все данные в Map
+        // Собираем все данные в один Map
         Map<String, Object> reportData = new HashMap<>();
         reportData.put("totalTickets", totalTickets);
+        reportData.put("ticketsWithRefilling", ticketsWithRefilling);
+        reportData.put("ticketsWithoutRefilling", ticketsWithoutRefilling);
         reportData.put("ticketsByUser", ticketsByUser);
+        reportData.put("ticketsByUserWithRefilling", ticketsByUserWithRefilling);
+        reportData.put("ticketsByUserWithoutRefilling", ticketsByUserWithoutRefilling);
         reportData.put("ticketDetails", ticketDetails);
         reportData.put("startDate", startDate);
         reportData.put("endDate", endDate);
 
         return reportData;
     }
+
 
     private List<Ticket> filterTicketsByDate(LocalDate startDate, LocalDate endDate) {
         if (startDate == null && endDate == null) {

@@ -30,6 +30,7 @@ public class StockSuppliesService {
         if (existingStock.isPresent()){
             StockSupplies stockSupplies = existingStock.get();
             stockSupplies.setQuantity(suppliesDTO.getQuantity());
+            stockSupplies.setNomenclature(suppliesDTO.getNomenclature());
             return suppliesRepository.save(stockSupplies);
         }
         //если не нашли, то создаем новую сущность

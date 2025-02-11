@@ -96,6 +96,12 @@ $(document).ready(function () {
     });
 });
 
+document.getElementById('refilling').addEventListener('change', function() {
+    const textarea = document.getElementById('descriptionOfTheProblem');
+    if (this.checked && !textarea.value.includes('Заправка')) {
+        textarea.value += (textarea.value ? ' ' : '') + 'Заправка';
+    }
+});
 // Инициализация tooltips Bootstrap
 document.addEventListener("DOMContentLoaded", function () {
     let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));

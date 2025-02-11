@@ -16,8 +16,11 @@ public class TicketUpdateDTO {
 
     private String descriptionOfTheProblem;     //описание неисправности
     private String inventoryNumber;             //инвентарный номер
-    private String userDepartment;                  //Наименование отдела в котором работает
-    private String userPhoneNumber;                 //Номер телефона
+    private String userDepartment;              //Наименование отдела в котором работает
+    private String userPhoneNumber;             //Номер телефона
+
+    private Boolean refilling;                  //Заправка
+
 
     @Data
     public static class SuppliesDTO {

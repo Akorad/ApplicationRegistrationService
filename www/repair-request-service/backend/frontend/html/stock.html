@@ -67,12 +67,16 @@
                 <form id="addSupplyForm">
                     <div class="mb-3">
                         <label for="nomenclatureSearch" class="form-label">Номенклатура</label>
-                        <div class="dropdown">
-                            <input type="text" id="nomenclatureSearch" class="form-control" placeholder="Поиск номенклатуры..." autocomplete="off">
+                        <div class="dropdown position-relative">
+                            <div class="input-group">
+                                <input type="text" id="nomenclatureSearch" class="form-control" placeholder="Поиск номенклатуры..." autocomplete="off">
+                                <button id="clearNomenclature" class="btn btn-outline-secondary" type="button">&times;</button>
+                            </div>
                             <ul id="nomenclatureList" class="dropdown-menu" style="display: none; max-height: 200px; overflow-y: auto;">
                                 <!-- Список номенклатур будет заполнен через JavaScript -->
                             </ul>
                         </div>
+
                     </div>
                     <div class="mb-3">
                         <label for="quantityInput" class="form-label">Количество</label>

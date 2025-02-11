@@ -55,7 +55,7 @@ public class TicketService {
         String inventoryNumber = ticketCreateDTO.getEquipment().getInventoryNumber();
 
         // Проверка наличия заявки на это оборудование
-        checkExistingTicket(inventoryNumber);
+        checkExistingTicket(inventoryNumber, ticketCreateDTO.getRefilling());
 
         // Поиск или создание оборудования
         Equipment equipment = findOrCreateEquipment(inventoryNumber);
@@ -92,7 +92,7 @@ public class TicketService {
             String inventoryNumber = ticketCreateGuestDTO.getEquipment().getInventoryNumber();
 
             // Проверка наличия заявки на это оборудование
-            checkExistingTicket(inventoryNumber);
+            checkExistingTicket(inventoryNumber, ticketCreateGuestDTO.getRefilling());
 
             // Поиск или создание оборудования
             Equipment equipment = findOrCreateEquipment(inventoryNumber);
@@ -143,6 +143,7 @@ public class TicketService {
         ticket.setEquipment(equipment);
         ticket.setUserDepartment(ticketUpdateUserDTO.getDepartment());
         ticket.setUserPhoneNumber(ticketUpdateUserDTO.getPhoneNumber());
+        ticket.setRefilling(ticketUpdateUserDTO.getRefilling());
         return ticketRepository.save(ticket);
     }
 
@@ -179,6 +180,7 @@ public class TicketService {
         ticket.setComments(ticketUpdateDTO.getComments());
         ticket.setTypeOfWork(ticketUpdateDTO.getTypeOfWork());
         ticket.setStatus(ticketUpdateDTO.getStatus());
+        ticket.setRefilling(ticketUpdateDTO.getRefilling());
 
         if (ticketUpdateDTO.getStatus().equals(CLOSED) && ticket.getEndDate() == null) {
             ticket.setEndDate(LocalDateTime.now());
@@ -291,7 +293,7 @@ public class TicketService {
     }
 
     //проверка статуса заявки по инвентарному номеру
-    private void checkExistingTicket(String inventoryNumber) {
+    private void checkExistingTicket(String inventoryNumber, Boolean refiling) {
         if (inventoryNumber != null && !inventoryNumber.equals("б/н")) {
             List<Ticket> tickets = ticketRepository.findByEquipmentInventoryNumberOrderByCreatedDateDesc(inventoryNumber);
 
@@ -300,7 +302,7 @@ public class TicketService {
                 boolean hasOpenTicket = tickets.stream()
                         .anyMatch(ticket -> ticket.getStatus() != CLOSED);
 
-                if (hasOpenTicket) {
+                if (hasOpenTicket & !refiling) {
                     throw new RuntimeException("Заявка с инвентарным номером " + inventoryNumber + " уже находится в работе");
                 }
             }

@@ -27,10 +27,20 @@
             background-color: #f2f2f2;
         }
         .footer {
-            margin-top: 20px;
+            margin-top: 10px;
             text-align: right;
             font-style: italic;
         }
+        .tables-container {
+            display: flex;
+            gap: 30px; /* Отступ между таблицами */
+        }
+
+        .tables-container div {
+            flex: 1; /* Обе таблицы будут равномерно занимать доступное пространство */
+            min-width: 300px; /* Минимальная ширина каждой таблицы */
+        }
+
     </style>
 </head>
 <body>
@@ -38,21 +48,42 @@
 <p><strong>Период:</strong> <span th:text="${startDate} + ' - ' + ${endDate}"></span></p>
 <p><strong>Общее количество заявок:</strong> <span th:text="${totalTickets}"></span></p>
 
-<h2>Количество заявок по исполнителям</h2>
-<table>
-    <thead>
-    <tr>
-        <th>Исполнитель</th>
-        <th>Количество заявок</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="entry : ${ticketsByUser}">
-        <td th:text="${entry.key}"></td>
-        <td th:text="${entry.value}"></td>
-    </tr>
-    </tbody>
-</table>
+<div class="tables-container">
+    <div style="padding-right: 5px;">
+        <h2>Количество ремонтов <span th:text="${ticketsWithoutRefilling}"></span></h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Исполнитель</th>
+                <th>Количество заявок</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${ticketsByUserWithoutRefilling}">
+                <td th:text="${entry.key}"></td>
+                <td th:text="${entry.value}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div style="padding-left: 5px;">
+        <h2>Количество заправок <span th:text="${ticketsWithRefilling}"></span></h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Исполнитель</th>
+                <th>Количество заявок</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${ticketsByUserWithRefilling}">
+                <td th:text="${entry.key}"></td>
+                <td th:text="${entry.value}"></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 
 <h2 style="text-align: center;">Детали заявок</h2>
 <table>
@@ -77,5 +108,7 @@
 <div class="footer">
     <p>Отчет сгенерирован: <span th:text="${#dates.format(#dates.createNow(), 'dd.MM.yyyy HH:mm')}"></span></p>
 </div>
+
+
 </body>
 </html>

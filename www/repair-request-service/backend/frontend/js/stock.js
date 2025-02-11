@@ -783,6 +783,40 @@ function normalizeNomenclature(item, source) {
 }
 let selectedNomenclatureCode = null; // Для хранения выбранного кода номенклатуры
 
+$(document).ready(function() {
+    // Изначально скрываем кнопку-крестик
+    $('#clearNomenclature').hide();
+
+    // Обработчик ввода в поле - если есть текст, показываем кнопку, иначе скрываем
+    $('#nomenclatureSearch').on('input', function() {
+        var value = $(this).val();
+        if (value.length > 0) {
+            $('#clearNomenclature').show();
+        } else {
+            $('#clearNomenclature').hide();
+        }
+    });
+
+    // Обработчик клика по кнопке-крестику
+    $('#clearNomenclature').on('click', function(e) {
+        e.preventDefault(); // Предотвращаем действие по умолчанию
+        $('#nomenclatureSearch').val('').trigger('input'); // Очищаем поле и вызываем событие input
+        selectedNomenclatureCode = null; // Сбрасываем выбранное значение
+        $(this).hide(); // Скрываем кнопку
+        $('#nomenclatureList').hide(); // Опционально скрываем выпадающий список
+    });
+
+    // Обработчик выбора элемента из выпадающего списка
+    $('#nomenclatureList').on('click', '.dropdown-item', function() {
+        var selectedText = $(this).data('name'); // Наименование элемента
+        var selectedValue = $(this).data('value'); // Код номенклатуры
+        $('#nomenclatureSearch').val(selectedText).trigger('input'); // Устанавливаем значение и вызываем событие input
+        selectedNomenclatureCode = selectedValue; // Сохраняем выбранный код
+        $('#nomenclatureList').hide(); // Скрываем выпадающий список
+    });
+});
+
+
 //отправка данных на сервре
 async function submitSupplyForm() {
     const nomenclatureName = $('#nomenclatureSearch').val(); // Наименование из input
@@ -839,6 +873,8 @@ async function submitSupplyForm() {
         alert('Произошла ошибка при отправке данных');
     }
 }
+
+//сортировка
 let sortDirection = {}; // Хранит текущее состояние сортировки
 
 function sortTable(columnIndex, thElement) {

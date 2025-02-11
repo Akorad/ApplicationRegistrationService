@@ -66,8 +66,6 @@ document.addEventListener("DOMContentLoaded", function () {
             // Очищаем supplyData и добавляем новые данные
             supplyData.length = 0;
             supplyData.push(...uniqueNomenclatures.values());
-
-            console.log("Данные загружены успешно:", supplyData);
         } catch (error) {
             console.error("Ошибка загрузки данных:", error);
             showAlert("Ошибка при загрузке данных. Проверьте соединение с сервером.");

@@ -28,6 +28,12 @@ function openModal(ticketNumber) {
                 document.getElementById("supplySearchInput").style.display = "none";
             }
 
+            // Инициализация tooltips Bootstrap
+                let tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+                tooltipTriggerList.map(function (tooltipTriggerEl) {
+                    return new bootstrap.Tooltip(tooltipTriggerEl);
+                });
+
             // Обработчик события закрытия модального окна
             modalElement.addEventListener('hidden.bs.modal', function () {
                 // Сбрасываем фокус перед закрытием
@@ -43,6 +49,7 @@ function openModal(ticketNumber) {
                 // Очищаем контейнер
                 modalContainer.innerHTML = '';
             });
+            // Инициализация tooltips Bootstrap
         })
         .catch(error => console.error('Ошибка:', error));
 }
@@ -75,7 +82,7 @@ async function deleteTicket(ticketNumber) {
 
 
 //обновление для пользователя
-async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber) {
+async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber, refiling) {
     try {
         const response = await fetch(`${window.config.apiUrl}/api/tickets/userUpdate`, {
             method: "POST",
@@ -88,7 +95,8 @@ async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNu
                 descriptionOfTheProblem,
                 inventoryNumber,
                 userDepartment,
-                userPhoneNumber
+                userPhoneNumber,
+                refiling
             })
         });
 
@@ -111,7 +119,7 @@ async function saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNu
 
 //обновления для администратора
 async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies,
-                               descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber) {
+                               descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber, refilling) {
     const payload = {
         ticketNumber,
         detectedProblem,
@@ -122,7 +130,8 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
         descriptionOfTheProblem,
         inventoryNumber,
         userDepartment,
-        userPhoneNumber
+        userPhoneNumber,
+        refilling
     };
     try {
         const response = await fetch(`${window.config.apiUrl}/api/tickets/update`, {
@@ -286,14 +295,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     const inventoryNumber = document.getElementById("inventoryNumber").value;
                     const userDepartment = document.getElementById("department").value;
                     const userPhoneNumber = document.getElementById("phoneNumber").value;
+                    const refilling = document.getElementById('refillingSelectModal').checked;
                     saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWork, status, supplies,
-                        descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber);
+                        descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber, refilling);
                 } else {
                     const descriptionOfTheProblem = document.getElementById("descriptionOfTheProblem").value;
                     const inventoryNumber = document.getElementById("inventoryNumber").value;
                     const userDepartment = document.getElementById("department").value;
                     const userPhoneNumber = document.getElementById("phoneNumber").value;
-                    saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber);
+                    const refilling = document.getElementById('refillingSelectModal').checked;
+                    saveUserTicket(ticketNumber, descriptionOfTheProblem, inventoryNumber, userDepartment, userPhoneNumber,refilling);
                 }
             });
         }

@@ -150,7 +150,6 @@ function checkAuthStatus() {
             }
 
             const currentTime = Math.floor(Date.now() / 1000); // Текущее время в секундах
-            console.log(`Текущие время: ${currentTime}, срок действия токена: ${parsedToken.exp}`);
 
             if (parsedToken.exp < currentTime) {
                 console.warn("Токен истек.");
@@ -284,7 +283,7 @@ function logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('userRole');
     updateUI(false);
-    window.location.href = '/';
+    location.reload();
 }
 
 // Декодирование токена JWT

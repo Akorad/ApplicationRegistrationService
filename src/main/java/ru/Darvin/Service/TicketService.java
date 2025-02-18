@@ -1,5 +1,6 @@
 package ru.Darvin.Service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -51,6 +52,7 @@ public class TicketService {
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     //создание заявки
+    @Transactional
     public Ticket createTicket(TicketCreateDTO ticketCreateDTO){
         String inventoryNumber = ticketCreateDTO.getEquipment().getInventoryNumber();
 
@@ -85,6 +87,7 @@ public class TicketService {
     }
 
     //создание заявки гостем
+    @Transactional
     public Ticket createGuestTicket(TicketCreateGuestDTO ticketCreateGuestDTO){
         //Получение текущего пользователя из контекста безопасности
         User user = userService.getCurrentUser();

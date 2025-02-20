@@ -15,11 +15,11 @@ public class SecurityController {
     private final AuthenticationService authenticationService;
 
     //Регистрация пользователя
-    @Operation(summary = "Регистрация пользователя")
-    @PostMapping("/auth/sign-up")
-    public TokenResponse signUp(@RequestBody SignUpRequest request) {
-        return authenticationService.signUp(request);
-    }
+//    @Operation(summary = "Регистрация пользователя")
+//    @PostMapping("/auth/sign-up")
+//    public TokenResponse signUp(@RequestBody SignUpRequest request) {
+//        return authenticationService.signUp(request);
+//    }
 
     //Авторизация пользователя
     @Operation(summary = "Авторизация пользователя")

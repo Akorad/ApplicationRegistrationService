@@ -208,6 +208,7 @@ public class ReportService {
         Map<LocalDate, Long> ticketTrends = tickets.stream()
                 .collect(Collectors.groupingBy(
                         ticket -> ticket.getCreatedDate().toLocalDate(),
+                        TreeMap::new,
                         Collectors.counting()
                 ));
 

@@ -9,7 +9,7 @@ async function fetchTickets(page = 0, size = 10, filters = currentFilters) {
     });
     if (!response.ok) {
         showAlert('Ошибка при загрузке заявок. Пожалуйста, выполните вход в систему.');
-        $('#loginModal').modal('show');
+        // $('#loginModal').modal('show');
         return;
     }
     const data = await response.json();

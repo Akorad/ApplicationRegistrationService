@@ -43,11 +43,14 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
 
 });
 $(document).ready(function () {
+
+    //проверка токена
+    if (!localStorage.getItem('token')){
+        $('#loginModal').modal('show');
+    }
+
     const apiUrl = `${window.config.apiUrl}/api/departments/names`;
-
     // Загружаем данные из API
-
-
     $.ajax({
         url: apiUrl,
         method: 'GET',
@@ -109,3 +112,5 @@ document.addEventListener("DOMContentLoaded", function () {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+

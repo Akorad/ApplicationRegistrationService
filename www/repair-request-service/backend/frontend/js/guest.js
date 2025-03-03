@@ -42,12 +42,24 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
     }
 
 });
-$(document).ready(function () {
 
-    //проверка токена
-    if (!!localStorage.getItem('token')){
-        $('#loginModal').modal('show');
-    }
+$(document).ready(function () {
+    const observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (mutation) {
+            if ($('#loginModal').length) {
+                if (localStorage.getItem('token') == null) {
+                    $('#loginModal').modal('show');
+                }
+                observer.disconnect(); // Останавливаем наблюдение после открытия модального окна
+            }
+        });
+    });
+
+    // Начинаем наблюдение за изменениями в DOM
+    observer.observe(document.body, { childList: true, subtree: true });
+});
+
+$(document).ready(function () {
 
     const apiUrl = `${window.config.apiUrl}/api/departments/names`;
     // Загружаем данные из API

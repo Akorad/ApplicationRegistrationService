@@ -45,7 +45,7 @@ document.getElementById('guestTicketForm').addEventListener('submit', async func
 $(document).ready(function () {
 
     //проверка токена
-    if (!localStorage.getItem('token')){
+    if (!!localStorage.getItem('token')){
         $('#loginModal').modal('show');
     }
 

@@ -177,6 +177,10 @@ public class TicketService {
                 ticket.setGuestPhoneNumber(ticketUpdateDTO.getUserPhoneNumber());
             }
 
+        // Установка редактора заявки
+        if (!ticket.getStatus().equals(READY)){
+            ticket.setEditorUser(userService.getCurrentUser());
+        }
 
         // Установка основных полей заявки
         ticket.setDetectedProblem(ticketUpdateDTO.getDetectedProblem());
@@ -204,10 +208,7 @@ public class TicketService {
         // Универсальный метод для обновления материалов
         updateSupplies(ticket, incomingSuppliesMap);
 
-        // Установка редактора заявки
-        if (!ticket.getStatus().equals(READY)){
-            ticket.setEditorUser(userService.getCurrentUser());
-        }
+
         return ticketRepository.save(ticket);
     }
 

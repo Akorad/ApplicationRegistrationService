@@ -205,7 +205,7 @@ public class TicketService {
         updateSupplies(ticket, incomingSuppliesMap);
 
         // Установка редактора заявки
-        if (!ticketUpdateDTO.getStatus().equals(READY)){
+        if (!ticket.getStatus().equals(READY)){
             ticket.setEditorUser(userService.getCurrentUser());
         }
         return ticketRepository.save(ticket);

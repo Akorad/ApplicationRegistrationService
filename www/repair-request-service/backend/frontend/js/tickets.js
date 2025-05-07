@@ -61,13 +61,49 @@ function updateTicketTable(tickets) {
 function updatePagination(totalPages, currentPage) {
     const pagination = document.getElementById('pagination');
     pagination.innerHTML = '';
-    for (let i = 0; i < totalPages; i++) {
+
+    const maxVisiblePages = 9;
+    const sidePages = 4;
+
+    // Рассчитываем диапазон отображаемых страниц
+    let startPage = Math.max(0, currentPage - sidePages);
+    let endPage = Math.min(totalPages - 1, currentPage + sidePages);
+
+    // Корректируем диапазон, если страниц меньше 9 в диапазоне
+    if (endPage - startPage < maxVisiblePages - 1) {
+        const pagesToAdd = maxVisiblePages - 1 - (endPage - startPage);
+        if (startPage === 0) {
+            endPage = Math.min(totalPages - 1, endPage + pagesToAdd);
+        } else if (endPage === totalPages - 1) {
+            startPage = Math.max(0, startPage - pagesToAdd);
+        }
+    }
+
+    // Кнопка "Первая"
+    if (startPage > 0) {
+        const firstLi = document.createElement('li');
+        firstLi.className = 'page-item';
+        firstLi.innerHTML = `<a class="page-link" href="#" onclick="fetchTickets(0, 10, currentFilters)">«</a>`;
+        pagination.appendChild(firstLi);
+    }
+
+    // Основной диапазон страниц
+    for (let i = startPage; i <= endPage; i++) {
         const li = document.createElement('li');
         li.className = `page-item ${i === currentPage ? 'active' : ''}`;
         li.innerHTML = `<a class="page-link" href="#" onclick="fetchTickets(${i}, 10, currentFilters)">${i + 1}</a>`;
         pagination.appendChild(li);
     }
+
+    // Кнопка "Последняя"
+    if (endPage < totalPages - 1) {
+        const lastLi = document.createElement('li');
+        lastLi.className = 'page-item';
+        lastLi.innerHTML = `<a class="page-link" href="#" onclick="fetchTickets(${totalPages - 1}, 10, currentFilters)">»</a>`;
+        pagination.appendChild(lastLi);
+    }
 }
+
 
 // Функция перевода статуса на русский
 const ticketTypeTranslations = {

@@ -13,6 +13,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+//выдача по МОЛ
 public class SuppliesIssue {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

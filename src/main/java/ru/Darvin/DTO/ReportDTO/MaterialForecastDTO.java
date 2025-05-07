@@ -12,4 +12,9 @@ public class MaterialForecastDTO {
 
     @Schema(description = "Прогнозируемый расход материалов на следующий год (наименование -> количество)", example = "{\"Картридж\": 120, \"Кабель\": 60}")
     private Map<String, Integer> forecastedMaterialUsage;
+
+    public MaterialForecastDTO(Map<String, Integer> forecastedMaterialUsage) {
+        this.forecastedMaterialUsage = forecastedMaterialUsage;
+    }
+
 }

@@ -17,4 +17,6 @@ public class SuppliesDTO {
 
     @JsonProperty("МОЛ")
     private String mol;                 //МОЛ
+
+    private Boolean includeInReport;    //Отключение отчета прогнозирование
 }

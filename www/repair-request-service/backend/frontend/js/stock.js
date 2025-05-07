@@ -821,6 +821,7 @@ $(document).ready(function() {
 async function submitSupplyForm() {
     const nomenclatureName = $('#nomenclatureSearch').val(); // Наименование из input
     const quantity = $('#quantityInput').val(); // Количество
+    const includeInReport = document.getElementById('includeInReport').checked;
 
     if (!nomenclatureName || !quantity) {
         alert('Заполните все поля!');
@@ -831,8 +832,10 @@ async function submitSupplyForm() {
     const payload = selectedNomenclatureCode
         ? { nomenclature: nomenclatureName,
             nomenclatureCode: selectedNomenclatureCode,
+            includeInReport:includeInReport,
             quantity: parseInt(quantity, 10) } // Если выбран код
         : { nomenclature: nomenclatureName,
+            includeInReport:includeInReport,
             nomenclatureCode: "",
             quantity: parseInt(quantity, 10)}; // Если введено вручную
 

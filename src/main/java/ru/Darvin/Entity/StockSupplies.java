@@ -17,4 +17,5 @@ public class StockSupplies {
     private String nomenclatureCode;    //НоменклатураКод
     private int quantity;               //Количество
     private String mol;                 //МОЛ
+    private Boolean includeInReport;    //Отключение отчета прогнозирование
 }

@@ -109,6 +109,49 @@ $(document).ready(function () {
             console.error('Ошибка загрузки данных:', error);
         }
     });
+    let currentIndex = -1;
+
+    $('#guestDepartmentSearch').on('keydown', function (e) {
+        const items = $('#guestDepartmentList .dropdown-item:visible');
+
+        if (!items.length) return;
+
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            currentIndex = (currentIndex + 1) % items.length;
+            highlightItem(items, currentIndex);
+        } else if (e.key === 'ArrowUp') {
+            if (currentIndex <= 0) return; // ⛔ блокируем вверх, если ничего не выбрано
+            e.preventDefault();
+            currentIndex = (currentIndex - 1 + items.length) % items.length;
+            highlightItem(items, currentIndex);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (currentIndex >= 0 && currentIndex < items.length) {
+                const selectedText = $(items[currentIndex]).text();
+                $('#guestDepartmentSearch').val(selectedText);
+                $('#guestDepartmentList').hide();
+            }
+        }
+    });
+
+    function highlightItem(items, index) {
+        items.removeClass('active');
+        const activeItem = $(items[index]);
+        activeItem.addClass('active');
+        activeItem[0].scrollIntoView({
+            block: 'nearest', // прокручивает так, чтобы элемент оказался видим
+            behavior: 'smooth' // можно убрать, если мешает
+        });
+    }
+
+
+// При новом вводе — сбрасываем текущий индекс
+    $('#guestDepartmentSearch').on('input', function () {
+        currentIndex = -1;
+        $('#guestDepartmentList .dropdown-item').removeClass('active');
+    });
+
 });
 
 document.getElementById('refilling').addEventListener('change', function() {

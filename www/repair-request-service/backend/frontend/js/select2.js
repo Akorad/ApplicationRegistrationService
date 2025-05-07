@@ -241,6 +241,45 @@ document.addEventListener("DOMContentLoaded", function () {
         if (supplyData.length === 0) await loadSupplies();
         setupSearchHandlers();
 
+        let highlightedIndex = -1;
+
+        searchInput.addEventListener("keydown", (e) => {
+            const items = dropdown.querySelectorAll(".dropdown-item:not(.disabled)");
+
+            if (items.length === 0) return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                highlightedIndex = (highlightedIndex + 1) % items.length;
+                highlightItem(items, highlightedIndex);
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+                highlightItem(items, highlightedIndex);
+            } else if (e.key === "Enter") {
+                e.preventDefault();
+                if (highlightedIndex >= 0 && highlightedIndex < items.length) {
+                    items[highlightedIndex].click();
+                    highlightedIndex = -1;
+                }
+            }
+        });
+
+        function highlightItem(items, index) {
+            items.forEach((item, i) => {
+                if (i === index) {
+                    item.classList.add("active");
+                    item.scrollIntoView({
+                        block: "nearest", // "nearest" делает мягкую прокрутку внутри контейнера
+                        behavior: "smooth"
+                    });
+                } else {
+                    item.classList.remove("active");
+                }
+            });
+        }
+
+
         const suppliesJson = selectedSuppliesContainer.getAttribute("data-supplies-json");
         if (suppliesJson) {
             try {

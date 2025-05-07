@@ -145,7 +145,7 @@ async function saveAdminTicket(ticketNumber, detectedProblem, comments, typeOfWo
 
         if (response.ok) {
             showAlert("Заявка успешно сохранена");
-            $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
+            // $('#ticketInfoModal').modal('hide'); // Закрыть модальное окно
             if (document.getElementById('ticketTableBody')){
                 fetchTickets(); // Обновить список заявок
             }

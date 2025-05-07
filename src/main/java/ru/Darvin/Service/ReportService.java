@@ -105,98 +105,192 @@ public class ReportService {
                 .build();
     }
 
+
+
 //прогнозирование расходных материалов
     public MaterialForecastDTO getMaterialForecastReport(int months) {
         // Получаем все данные (без фильтрации по дате)
         List<Supplies> supplies = suppliesRepository.findAll();
 
-        // Группируем данные по номенклатуре
-        Map<String, List<Supplies>> groupedSupplies = supplies.stream()
+        // фильтруем только те что участвуют в прогнозе
+        List<Supplies> filtered = filterSuppliesForForecast(supplies);
+
+        //Группируем по наименованию
+        Map<String,List<Supplies>> grouped = filtered.stream()
                 .collect(Collectors.groupingBy(Supplies::getNomenclature));
 
-        // Прогнозируем расход на указанное количество месяцев
-        Map<String, Integer> forecastedMaterialUsage = new LinkedHashMap<>();
+        // 4. Считаем средний расход по каждому месяцу
+        Map<String, Map<Month, Double>> monthlyAverages = calculateMonthlyAverages(grouped);
 
-        for (Map.Entry<String, List<Supplies>> entry : groupedSupplies.entrySet()) {
-            String nomenclature = entry.getKey();
-            List<Supplies> suppliesList = entry.getValue();
+        // 5. Определяем, какие месяцы прогнозировать
+        List<Month> monthsToForecast = getNextNMonths(months);
 
-            // Фильтруем данные, оставляя только положительные значения
-            suppliesList = suppliesList.stream()
-                    .filter(supply -> supply.getQuantity() >= 0)
-                    .collect(Collectors.toList());
+        // 6. Строим финальный прогноз
+        Map<String, Integer> forecastMap = buildForecast(monthlyAverages, monthsToForecast);
 
-            // Сортируем данные по дате
-            suppliesList.sort(Comparator.comparing(Supplies::getDateOfUse));
+        System.out.println("Forecast size: " + forecastMap.size());
 
-            // Создаем модель линейной регрессии для учета тренда
-            SimpleRegression regression = new SimpleRegression();
 
-            // Добавляем данные в модель
-            for (int i = 0; i < suppliesList.size(); i++) {
-                Supplies supply = suppliesList.get(i);
-                double time = i; // Время (порядковый номер месяца)
-                double quantity = supply.getQuantity();
-                regression.addData(time, quantity);
+        // 7. Возвращаем DTO
+        return new MaterialForecastDTO(forecastMap);
+
+    }
+
+    private List<Supplies> filterSuppliesForForecast(List<Supplies> supplies){
+        return supplies.stream()
+                .filter(s-> s.getIncludeInReport() == null || !s.getIncludeInReport())
+                .collect(Collectors.toList());
+    }
+
+    private Map<String, Map<Month, Double>> calculateMonthlyAverages(Map<String, List<Supplies>> grouped) {
+        Map<String, Map<Month, Double>> result = new HashMap<>();
+
+        int currentYear = LocalDate.now().getYear();
+
+        for (Map.Entry<String, List<Supplies>> entry : grouped.entrySet()) {
+            String name = entry.getKey();
+            List<Supplies> list = entry.getValue();
+
+            // ключ = месяц, значение = список пар (вес, количество)
+            Map<Month, List<WeightedQuantity>> monthToQuantities = new HashMap<>();
+
+            for (Supplies s : list) {
+                Month m = s.getDateOfUse().getMonth();
+                int year = s.getDateOfUse().getYear();
+                int quantity = s.getQuantity();
+
+                double weight = getWeightForYear(currentYear, year);
+                monthToQuantities
+                        .computeIfAbsent(m, k -> new ArrayList<>())
+                        .add(new WeightedQuantity(quantity, weight));
             }
 
-            // Определяем тренд (рост, спад или стабильность)
-            double slope = regression.getSlope(); // Наклон линии тренда
+            // Считаем взвешенное среднее
+            Map<Month, Double> averages = new HashMap<>();
+            for (Map.Entry<Month, List<WeightedQuantity>> entryMonth : monthToQuantities.entrySet()) {
+                double numerator = 0;
+                double denominator = 0;
 
-            // Прогнозируем расход на указанное количество месяцев
-            int lastIndex = suppliesList.size() - 1;
-            double lastQuantity = suppliesList.get(lastIndex).getQuantity();
+                for (WeightedQuantity wq : entryMonth.getValue()) {
+                    numerator += wq.quantity * wq.weight;
+                    denominator += wq.weight;
+                }
 
-            // Учитываем тренд и последнее значение
-            double forecast = lastQuantity + slope * months;
-
-            // Ограничиваем прогноз снизу нулем
-            forecast = Math.max(forecast, 0);
-
-            // Учитываем сезонность (скользящее среднее за последние 3 месяца)
-            double seasonalAverage = calculateSeasonalAverage(suppliesList, 3);
-
-            // Итоговый прогноз (среднее между трендом и сезонностью, если оба положительные)
-            int finalForecast;
-            if (forecast >= 0 && seasonalAverage >= 0) {
-                finalForecast = (int) ((forecast + seasonalAverage) / 2);
-            } else if (forecast >= 0) {
-                finalForecast = (int) forecast;
-            } else if (seasonalAverage >= 0) {
-                finalForecast = (int) seasonalAverage;
-            } else {
-                finalForecast = 0; // Если оба значения отрицательные, прогноз = 0
+                double avg = denominator == 0 ? 0 : numerator / denominator;
+                averages.put(entryMonth.getKey(), avg);
             }
 
-            forecastedMaterialUsage.put(nomenclature, finalForecast);
+            result.put(name, averages);
         }
 
-        // Сортируем прогнозы от большего к меньшему
-        Map<String, Integer> sortedForecast = forecastedMaterialUsage.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+        return result;
+    }
+
+    // Метод определения веса
+    private double getWeightForYear(int currentYear, int year) {
+        int diff = currentYear - year;
+        return switch (diff) {
+            case 0 -> 1.0;   // Текущий год
+            case 1 -> 0.7;   // Предыдущий
+            case 2 -> 0.3;   // 2 года назад
+            default -> 0.1;  // Старые
+        };
+    }
+
+    // Вспомогательный класс
+    private static class WeightedQuantity {
+        int quantity;
+        double weight;
+
+        WeightedQuantity(int quantity, double weight) {
+            this.quantity = quantity;
+            this.weight = weight;
+        }
+    }
+
+
+    private List<Month> getNextNMonths(int months) {
+        Month current = LocalDate.now().getMonth();
+        List<Month> nextMonths = new ArrayList<>();
+
+        for (int i = 1; i <= months; i++) {
+            nextMonths.add(current.plus(i));
+        }
+
+        return nextMonths;
+    }
+
+    private Map<String, Integer> buildForecast(Map<String, Map<Month, Double>> averages, List<Month> forecastMonths) {
+        Map<String, Integer> forecast = new HashMap<>();
+
+        for (Map.Entry<String, Map<Month, Double>> entry : averages.entrySet()) {
+            String name = entry.getKey();
+            Map<Month, Double> monthMap = entry.getValue();
+
+            double total = 0;
+            for (Month m : forecastMonths) {
+                total += monthMap.getOrDefault(m, 0.0);
+            }
+
+            double baseForecast = total;
+            double adjustedForecast = applyTrendAdjustment(name, monthMap, baseForecast);
+
+            forecast.put(name, (int) Math.round(adjustedForecast));
+        }
+
+        return forecast.entrySet().stream()
+                .sorted(Map.Entry.<String,Integer> comparingByValue().reversed())
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (e1, e2) -> e1,
                         LinkedHashMap::new
                 ));
-
-        return MaterialForecastDTO.builder()
-                .forecastedMaterialUsage(sortedForecast)
-                .build();
     }
 
-    // Метод для расчета скользящего среднего
-    private double calculateSeasonalAverage(List<Supplies> supplies, int seasonLength) {
-        if (supplies.size() < seasonLength) {
-            return supplies.stream().mapToInt(Supplies::getQuantity).average().orElse(0);
+    private double applyTrendAdjustment(String name, Map<Month, Double> monthMap, double baseForecast) {
+        List<Month> last6Months = getLastNMonths(6);
+
+        double recentTotal = 0;
+        for (Month m : last6Months) {
+            recentTotal += monthMap.getOrDefault(m, 0.0);
         }
-        double sum = 0;
-        for (int i = supplies.size() - seasonLength; i < supplies.size(); i++) {
-            sum += supplies.get(i).getQuantity();
+        double recentAvg = recentTotal / last6Months.size();
+
+        // Считаем "старое" среднее — исключаем последние 6 месяцев
+        List<Month> historicalMonths = Arrays.stream(Month.values())
+                .filter(m -> !last6Months.contains(m))
+                .collect(Collectors.toList());
+
+        double historicalTotal = 0;
+        for (Month m : historicalMonths) {
+            historicalTotal += monthMap.getOrDefault(m, 0.0);
         }
-        return sum / seasonLength;
+        double historicalAvg = historicalMonths.size() == 0 ? 0 : historicalTotal / historicalMonths.size();
+
+        // Если нет данных, не корректируем
+        if (historicalAvg == 0) return baseForecast;
+
+        double diffRatio = (recentAvg - historicalAvg) / historicalAvg;
+
+        if (Math.abs(diffRatio) < 0.3) {
+            return baseForecast; // Изменения < 30% — тренд считается стабильным
+        }
+
+        // Корректируем: усиливаем/ослабляем прогноз в зависимости от роста/падения
+        double adjustmentFactor = 1 + diffRatio * 0.5; // сглаживание
+        return baseForecast * adjustmentFactor;
     }
+
+    private List<Month> getLastNMonths(int count) {
+        List<Month> months = new ArrayList<>();
+        Month current = LocalDate.now().getMonth();
+        for (int i = count; i >= 1; i--) {
+            months.add(current.minus(i));
+        }
+        return months;
+    }
+
 
 
     //отчет по тенденциям

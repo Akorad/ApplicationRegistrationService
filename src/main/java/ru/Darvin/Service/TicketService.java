@@ -421,48 +421,6 @@ public class TicketService {
         }
     }
 
-
-
-
-
-//старая версия обновления расходных материалов
-//    public void updateSupplies(Ticket ticket, Map<String, Integer> incomingSuppliesMap) {
-//        List<Supplies> suppliesToRemove = new ArrayList<>();
-//
-//        for (Supplies existingSupply : ticket.getSupplies()) {
-//            String nomenclatureCode = existingSupply.getNomenclatureCode();
-//
-//            if (incomingSuppliesMap.containsKey(nomenclatureCode)) {
-//                int newQuantity = incomingSuppliesMap.get(nomenclatureCode);
-//                if (existingSupply.getQuantity() != newQuantity) {
-//                    existingSupply.setQuantity(newQuantity);
-//                    existingSupply.setDateOfUse(LocalDateTime.now());
-//                }
-//                incomingSuppliesMap.remove(nomenclatureCode);
-//            } else {
-//                suppliesToRemove.add(existingSupply);
-//            }
-//        }
-//
-//        ticket.getSupplies().removeAll(suppliesToRemove);
-//
-//        for (Map.Entry<String, Integer> entry : incomingSuppliesMap.entrySet()) {
-//            String nomenclatureCode = entry.getKey();
-//            int quantity = entry.getValue();
-//
-//            SuppliesDTO foundSupply = suppliesService.getSupplies(nomenclatureCode);
-//            if (foundSupply != null) {
-//                Supplies newSupply = SuppliesMapperImpl.INSTANCE.mapToSupplies(foundSupply);
-//                newSupply.setQuantity(quantity);
-//                newSupply.setTicket(ticket);
-//                newSupply.setDateOfUse(LocalDateTime.now());
-//                ticket.getSupplies().add(newSupply);
-//            } else {
-//                throw new EquipmentNotFoundException("Материалы с номенклатурным кодом " + nomenclatureCode + " не найдены");
-//            }
-//        }
-//    }
-
     public List<TicketInfoDTO> getTicketHistoryByInventoryNumber(String inventoryNumber) {
         // Поиск всех заявок по инвентарному номеру
         List<Ticket> tickets = ticketRepository.findByEquipmentInventoryNumberOrderByCreatedDateDesc(inventoryNumber);

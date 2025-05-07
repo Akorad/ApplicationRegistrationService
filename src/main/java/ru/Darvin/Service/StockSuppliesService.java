@@ -52,6 +52,7 @@ public class StockSuppliesService {
         stockSupplies.setNomenclatureCode(findSuppliesDTO.getNomenclatureCode());
         stockSupplies.setMol(findSuppliesDTO.getMol());
         stockSupplies.setQuantity(suppliesDTO.getQuantity());
+        stockSupplies.setIncludeInReport(suppliesDTO.getIncludeInReport());
         stockSupplies.setNomenclature(findSuppliesDTO.getNomenclature());
 
         return suppliesRepository.save(stockSupplies);

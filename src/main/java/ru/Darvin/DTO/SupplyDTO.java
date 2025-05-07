@@ -7,4 +7,5 @@ public class SupplyDTO {
     private String nomenclature;     // Номенклатура
     private String nomenclatureCode; // Код номенклатуры
     private int quantity;            // Количество
+    private Boolean includeInReport; // Отключение отчета прогнозирование
 }
